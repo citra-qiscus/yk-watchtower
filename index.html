@@ -112,13 +112,13 @@
   .insight-section { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:16px; margin-bottom:14px; }
   .insight-section h4 { margin:0 0 12px; font-size:11.5px; color:var(--navy); font-weight:700; text-transform:uppercase; letter-spacing:.03em; display:flex; align-items:center; gap:7px; }
   .insight-section h4::before { content:''; width:14px; height:2px; background:var(--green); display:inline-block; }
-  .cat-budget-row { display:grid; grid-template-columns:120px 1fr 90px 90px 60px; align-items:center; gap:10px; padding:8px 0; border-bottom:1px solid var(--border); }
+  .cat-budget-row { display:grid; grid-template-columns:120px 1fr 90px 50px; grid-template-areas:"name progress figs pct"; align-items:center; gap:10px; padding:8px 0; border-bottom:1px solid var(--border); }
   .cat-budget-row:last-child { border-bottom:none; }
-  .cat-budget-name { font-size:12px; font-weight:700; }
-  .cat-budget-figs { font-size:11px; color:var(--grey); text-align:right; }
+  .cat-budget-name { grid-area:name; font-size:12px; font-weight:700; }
+  .progress-track { grid-area:progress; background:var(--grey-superlight); border-radius:999px; height:8px; overflow:hidden; }
+  .cat-budget-figs { grid-area:figs; font-size:11px; color:var(--grey); text-align:right; }
   .cat-budget-figs strong { color:var(--black); }
-  .cat-budget-pct { font-size:11.5px; font-weight:700; text-align:right; }
-  .progress-track { background:var(--grey-superlight); border-radius:999px; height:8px; overflow:hidden; }
+  .cat-budget-pct { grid-area:pct; font-size:11.5px; font-weight:700; text-align:right; }
   .progress-fill { height:100%; border-radius:999px; }
 
   .top-tasks-list { display:flex; flex-direction:column; gap:0; }
@@ -137,6 +137,26 @@
   .heatmap-value { font-size:11.5px; font-weight:700; text-align:right; color:var(--navy); }
   .empty-note-sm { color:var(--grey-light); font-size:12px; text-align:center; padding:16px; }
 
+  .guide-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:14px; }
+  .guide-row { display:flex; align-items:flex-start; gap:12px; padding:9px 0; border-bottom:1px solid var(--border); }
+  .guide-row:last-child { border-bottom:none; }
+  .guide-row-label { flex:none; width:110px; }
+  .guide-row-desc { font-size:12px; color:var(--grey-dark); line-height:1.55; }
+  .guide-row-desc strong { color:var(--black); }
+  .formula-box { background:var(--navy-soft); border-radius:8px; padding:12px 14px; font-size:12.5px; color:var(--navy); font-weight:600; margin:8px 0; font-variant-numeric:tabular-nums; }
+  .formula-box .eg { display:block; margin-top:6px; font-size:11.5px; color:var(--grey-dark); font-weight:500; }
+  .guide-p { font-size:12.5px; color:var(--grey-dark); line-height:1.65; margin:0 0 10px; }
+  .guide-ul { margin:0 0 10px; padding-left:18px; }
+  .guide-ul li { font-size:12.5px; color:var(--grey-dark); line-height:1.7; }
+  .guide-ul li strong { color:var(--black); }
+  .guide-note { background:var(--yellow-soft); border-left:3px solid var(--yellow); border-radius:8px; padding:12px 14px; font-size:12px; color:var(--grey-dark); line-height:1.6; margin-top:6px; }
+  .guide-note strong { color:var(--navy); }
+  @media (max-width: 800px) {
+    .guide-grid { grid-template-columns: 1fr; }
+    .guide-row { flex-direction:column; gap:4px; }
+    .guide-row-label { width:auto; }
+  }
+
   .toolbar { display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:12px; flex-wrap:wrap; }
   .toolbar-left { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
   select, input[type=text], input[type=date], input[type=number], textarea {
@@ -152,14 +172,19 @@
   .btn-danger { background:var(--orange-soft); color:var(--navy); }
   .btn-danger:hover { background:var(--orange); color:#fff; }
   .btn-sm { padding:5px 9px; font-size:11.5px; }
-  .row-actions { display:flex; gap:6px; flex-wrap:wrap; }
+  .row-actions { display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:6px; min-width:140px; }
+  .row-actions .btn-sm { width:100%; text-align:center; }
   .section-desc { font-size:12px; color:var(--grey); margin: -6px 0 12px; }
 
+  .table-scroll { overflow-x:auto; -webkit-overflow-scrolling:touch; border-radius:12px; }
   table.simple { width:100%; border-collapse:collapse; background:var(--card); border:1px solid var(--border); border-radius:12px; overflow:hidden; }
-  table.simple thead th { text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:.04em; color:var(--grey); padding:11px 12px; background:#FAFBFD; border-bottom:1px solid var(--border); font-weight:600; }
+  table.simple thead th { text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:.04em; color:var(--grey); padding:11px 12px; background:#FAFBFD; border-bottom:1px solid var(--border); font-weight:600; white-space:nowrap; }
   table.simple tbody td { padding:11px 12px; border-bottom:1px solid var(--border); vertical-align:top; color:var(--grey-dark); }
   table.simple tbody tr:last-child td { border-bottom:none; }
   table.simple tbody tr:hover { background:var(--navy-soft); }
+  @media (max-width: 800px) {
+    .table-scroll table.simple { min-width:720px; }
+  }
   .empty-row td { text-align:center; color:var(--grey); padding:34px; }
   .muted { color:var(--grey); font-size:11.5px; }
   .task-name { font-weight:700; color:var(--black); }
@@ -199,6 +224,16 @@
     .cards { grid-template-columns: repeat(2,1fr); }
     .charts-row { grid-template-columns: 1fr; }
     .field-row { grid-template-columns: 1fr; }
+    .topbar-inner { flex-wrap: wrap; row-gap: 10px; }
+    .topbar-controls { flex: 1 1 100%; justify-content: flex-start; flex-wrap: wrap; }
+    .cat-budget-row {
+      grid-template-columns: 1fr 46px;
+      grid-template-areas: "name pct" "progress progress" "figs figs";
+      row-gap: 6px;
+    }
+    .cat-budget-figs { text-align: left; }
+    .insights-row { grid-template-columns: 1fr; }
+    .reminder-cols { grid-template-columns: 1fr; }
   }
 </style>
 </head>
@@ -213,7 +248,7 @@
       <div class="brand-caption">Yogyakarta Office &middot; Facility Monitoring</div>
     </div>
   </div>
-  <div style="display:flex; gap:14px; align-items:center;">
+  <div class="topbar-controls" style="display:flex; gap:14px; align-items:center;">
     <div class="year-field">
       <label class="hint" style="margin:0;">Report Year</label>
       <select id="year-filter"></select>
@@ -251,6 +286,7 @@
     <button class="tab-btn active" data-tab="dashboard">Overview</button>
     <button class="tab-btn" data-tab="tasks">Task List</button>
     <button class="tab-btn" data-tab="history">History</button>
+    <button class="tab-btn" data-tab="guide">Guide</button>
   </div>
 
   <!-- DASHBOARD -->
@@ -339,6 +375,7 @@
         <button class="btn-primary" id="btn-add-task">+ Add Task</button>
       </div>
     </div>
+    <div class="table-scroll">
     <table class="simple">
       <thead>
         <tr>
@@ -347,6 +384,7 @@
       </thead>
       <tbody id="tasks-tbody"></tbody>
     </table>
+    </div>
   </div>
 
   <!-- HISTORY LOG -->
@@ -368,11 +406,126 @@
       </div>
       <button class="btn-ghost" id="btn-export-history">Export CSV</button>
     </div>
+    <div class="table-scroll">
     <table class="simple">
       <thead><tr><th>Date</th><th>Task</th><th>Type</th><th>Actual Cost</th><th>Notes</th></tr></thead>
       <tbody id="history-log-tbody"></tbody>
     </table>
+    </div>
     <div style="text-align:right; margin-top:10px; font-weight:700; color:var(--navy);" id="history-log-total"></div>
+  </div>
+
+  <!-- GUIDE -->
+  <div class="panel" id="panel-guide">
+    <div class="section-desc">A quick reference for how YK Watchtower works — statuses, categories, budget calculations, and what each dashboard insight means.</div>
+
+    <div class="guide-grid">
+      <div class="insight-section" style="margin-bottom:0;">
+        <h4>Task Status</h4>
+        <div class="guide-row">
+          <div class="guide-row-label"><span class="badge overdue">Overdue</span></div>
+          <div class="guide-row-desc">Due date has already passed today. Needs attention immediately.</div>
+        </div>
+        <div class="guide-row">
+          <div class="guide-row-label"><span class="badge soon">Due soon</span></div>
+          <div class="guide-row-desc">Due within the next <strong>7 days</strong>.</div>
+        </div>
+        <div class="guide-row">
+          <div class="guide-row-label"><span class="badge upcoming">Scheduled</span></div>
+          <div class="guide-row-desc">Due date is more than 7 days away.</div>
+        </div>
+        <div class="guide-row">
+          <div class="guide-row-label"><span class="badge done">Done</span></div>
+          <div class="guide-row-desc">Only applies to <strong>one-off tasks</strong> (e.g. Incidents) that have been completed — they don't recur.</div>
+        </div>
+      </div>
+
+      <div class="insight-section" style="margin-bottom:0;">
+        <h4>Task Categories</h4>
+        <div class="guide-row">
+          <div class="guide-row-label"><span class="type-pill maintenance">Maintenance</span></div>
+          <div class="guide-row-desc">Routine upkeep — cleaning, servicing, inspections.</div>
+        </div>
+        <div class="guide-row">
+          <div class="guide-row-label"><span class="type-pill purchase">Purchase</span></div>
+          <div class="guide-row-desc">Recurring restocking — supplies, pantry, stationery.</div>
+        </div>
+        <div class="guide-row">
+          <div class="guide-row-label"><span class="type-pill insidental">Incident</span></div>
+          <div class="guide-row-desc">Unplanned, one-off events — breakdowns, sudden repairs.</div>
+        </div>
+        <div class="guide-row">
+          <div class="guide-row-label"><span class="type-pill tagihan">Bill</span></div>
+          <div class="guide-row-desc">Recurring payments — electricity, internet, and similar.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="insight-section">
+      <h4>Understanding Cost &amp; Budget</h4>
+      <p class="guide-p"><strong>Est. Cost</strong> is the expected cost of a <em>single</em> occurrence, set when you create or edit a task. <strong>Annual Budget</strong> is the projected yearly cost, calculated automatically from Est. Cost and how often the task recurs:</p>
+      <div class="formula-box">
+        Annual Budget = Est. Cost &times; (365 &divide; Frequency in days)
+        <span class="eg">Example: Rp 1,200,000 est. cost, Monthly (30 days) &rarr; 1,200,000 &times; (365&divide;30) = Rp 14,600,000/year</span>
+      </div>
+      <p class="guide-p">You can always overwrite this number manually — useful when a vendor charges a fixed annual contract price instead of a per-visit fee. One-off tasks (no recurring frequency) default to Rp 0 budget unless you set one manually.</p>
+      <p class="guide-p"><strong>Actual Expense</strong> is completely different — it's the real total pulled from your completion history (the "Actual Cost" you log every time you press <strong>Done</strong>). Budget is the plan; Actual Expense is what really happened.</p>
+    </div>
+
+    <div class="insight-section">
+      <h4>Dashboard Insights Explained</h4>
+      <div class="guide-row">
+        <div class="guide-row-label">Month-over-Month Trend</div>
+        <div class="guide-row-desc">Compares the two most recent months that have any recorded expense, and shows the percentage change between them.</div>
+      </div>
+      <div class="guide-row">
+        <div class="guide-row-label">Projected Year-End</div>
+        <div class="guide-row-desc">A run-rate forecast: (total spent so far &divide; months elapsed) &times; 12. Only shown for the current year — past years show their final closed total instead.</div>
+      </div>
+      <div class="guide-row">
+        <div class="guide-row-label">Category vs Budget</div>
+        <div class="guide-row-desc">Compares each category's actual spend this year against the sum of Annual Budget for tasks in that category.</div>
+      </div>
+      <div class="guide-row">
+        <div class="guide-row-label">Top 5 Costliest</div>
+        <div class="guide-row-desc">The 5 tasks with the highest total actual expense in the selected year, ranked highest first.</div>
+      </div>
+      <div class="guide-row">
+        <div class="guide-row-label">Expense Heatmap</div>
+        <div class="guide-row-desc">Total actual expense grouped by Area/Equipment for the selected year, sorted highest first.</div>
+      </div>
+    </div>
+
+    <div class="guide-grid">
+      <div class="insight-section" style="margin-bottom:0;">
+        <h4>Reports</h4>
+        <ul class="guide-ul">
+          <li><strong>Overview Report</strong> — set Month filter to "Full Year", then Download Report. Annual summary with expense trends and category recap.</li>
+          <li><strong>Monthly Report</strong> — pick a specific month first. Shows what was completed and what's still due that month.</li>
+          <li>Reports are formatted for A4 — open the downloaded file and print or "Save as PDF" from your browser.</li>
+        </ul>
+      </div>
+      <div class="insight-section" style="margin-bottom:0;">
+        <h4>Managing Tasks</h4>
+        <ul class="guide-ul">
+          <li><strong>Done</strong> — logs the actual date &amp; cost. For recurring tasks, the next due date is auto-calculated from the frequency.</li>
+          <li><strong>Edit</strong> — change any task detail without affecting its history.</li>
+          <li><strong>History</strong> — expand to see every past completion for that task.</li>
+          <li><strong>Delete</strong> — removes the task and its history permanently. This cannot be undone.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="insight-section">
+      <h4>Data &amp; Storage</h4>
+      <p class="guide-p">All data is stored in a <strong>shared database on the server</strong> — not in your browser. That means:</p>
+      <ul class="guide-ul">
+        <li>Everyone who opens this link sees the <strong>same live data</strong>, whether on a laptop, phone, or a colleague's device.</li>
+        <li>Switching tabs (Overview / Task List / History) automatically pulls the latest data, so you'll see updates made by others.</li>
+        <li>Use <strong>Export CSV</strong> (on the Task List and History tabs) regularly for your own backups or offline sharing.</li>
+      </ul>
+      <div class="guide-note"><strong>Note:</strong> this dashboard currently has no login — anyone with the link can view and edit data. Keep the link within your team.</div>
+    </div>
   </div>
 
   <div class="page-footer">Internal Tool · qiscus.com</div>
@@ -481,10 +634,6 @@
 
 <script>
 (function(){
-  const LS_TASKS = 'omt_tasks_v5';
-  const LS_MATRIX_OLD_V4 = 'omt_matrix_items_v4';
-  const LS_MATRIX_OLD_V3 = 'omt_matrix_items_v3';
-  const LS_INCIDENTAL_OLD = 'omt_incidental_v1';
   const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   const MONTH_NAMES_FULL = ['January','February','March','April','May','June','July','August','September','October','November','December'];
   const BRAND_CHART_COLORS = ['#01416C','#74C162','#FFD97C','#2F80ED','#FBB439','#56CCF2'];
@@ -497,88 +646,17 @@
   function todayStr(){ return new Date().toISOString().slice(0,10); }
   function freqLabel(days){ if (!days) return 'Once'; return FREQ_LABELS[String(days)] || (days + ' days'); }
 
-  // ---------- Seed ----------
-  function seedTasks(){
-    const t = todayStr();
-    function addDays(base, days){ const d = new Date(base+'T00:00:00'); d.setDate(d.getDate()+days); return d.toISOString().slice(0,10); }
-    function ab(estCost, freqDays){ return freqDays ? Math.round(estCost * (365/freqDays)) : 0; }
-    return [
-      { id: uid(), name:'Cleaning & Checking', area:'AC (All Room)', type:'Maintenance', frequencyDays:30, pic:'Vendor', estCost:1200000, annualBudget: ab(1200000,30), nextDue: addDays(t,-3), notes:'', completedOnce:false, history:[{date:addDays(t,-33),cost:1150000,notes:''}] },
-      { id: uid(), name:'Monitoring & Troubleshooting', area:'Internet & Network', type:'Maintenance', frequencyDays:90, pic:'Vendor', estCost:200000, annualBudget: ab(200000,90), nextDue: addDays(t,2), notes:'', completedOnce:false, history:[{date:addDays(t,-88),cost:180000,notes:''}] },
-      { id: uid(), name:'System Check', area:'CCTV', type:'Maintenance', frequencyDays:30, pic:'Vendor', estCost:200000, annualBudget: ab(200000,30), nextDue: addDays(t,12), notes:'', completedOnce:false, history:[] },
-      { id: uid(), name:'System Check', area:'Access Door System', type:'Maintenance', frequencyDays:180, pic:'Ops', estCost:0, annualBudget:0, nextDue: addDays(t,55), notes:'', completedOnce:false, history:[] },
-      { id: uid(), name:'Inspection', area:'Fire Extinguisher (APAR)', type:'Maintenance', frequencyDays:30, pic:'Ops', estCost:0, annualBudget:0, nextDue: addDays(t,7), notes:'', completedOnce:false, history:[] },
-      { id: uid(), name:'Daily Cleaning', area:'All Room', type:'Maintenance', frequencyDays:1, pic:'Office Boy', estCost:0, annualBudget:0, nextDue: t, notes:'', completedOnce:false, history:[] },
-      { id: uid(), name:'General Cleaning', area:'All Room', type:'Maintenance', frequencyDays:180, pic:'Vendor', estCost:6000000, annualBudget: ab(6000000,180), nextDue: addDays(t,140), notes:'', completedOnce:false, history:[] },
-      { id: uid(), name:'Restocking', area:'Pantry Supplies', type:'Purchase', frequencyDays:15, pic:'Ops/Office Boy', estCost:750000, annualBudget: ab(750000,15), nextDue: t, notes:'', completedOnce:false, history:[{date:addDays(t,-7),cost:720000,notes:''},{date:addDays(t,-22),cost:300000,notes:''}] },
-      { id: uid(), name:'Restocking', area:'Stationery Supplies', type:'Purchase', frequencyDays:30, pic:'Ops', estCost:500000, annualBudget: ab(500000,30), nextDue: addDays(t,17), notes:'', completedOnce:false, history:[] },
-      { id: uid(), name:'Restocking (as needed)', area:'First Aid Kit', type:'Purchase', frequencyDays:30, pic:'Ops', estCost:500000, annualBudget: ab(500000,30), nextDue: addDays(t,24), notes:'', completedOnce:false, history:[] },
-      { id: uid(), name:'Emergency lift repair (breakdown)', area:'Lift', type:'Insidental', frequencyDays:null, pic:'CV Lift Jaya', estCost:2500000, annualBudget:0, nextDue:'', notes:'', completedOnce:true, history:[{date:addDays(t,-7),cost:2500000,notes:'Sudden breakdown'}] },
-      { id: uid(), name:'Pay Internet Bill', area:'Internet & Network', type:'Tagihan', frequencyDays:30, pic:'Finance/Ops', estCost:1500000, annualBudget: ab(1500000,30), nextDue: addDays(t,5), notes:'', completedOnce:false, history:[{date:addDays(t,-25),cost:1500000,notes:''}] },
-      { id: uid(), name:'Pay Electricity Bill', area:'Electricity (PLN)', type:'Tagihan', frequencyDays:30, pic:'Finance/Ops', estCost:3500000, annualBudget: ab(3500000,30), nextDue: addDays(t,9), notes:'', completedOnce:false, history:[{date:addDays(t,-21),cost:3350000,notes:''}] }
-    ];
-  }
+  // ---------- Live backend API (shared database — not per-browser anymore) ----------
+  const API = {
+    async list(){ const r = await fetch('/api/tasks'); if(!r.ok) throw new Error('Failed to load'); return r.json(); },
+    async create(data){ const r = await fetch('/api/tasks', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(data) }); if(!r.ok) throw new Error('Failed to create'); return r.json(); },
+    async update(id, data){ const r = await fetch('/api/tasks/'+id, { method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify(data) }); if(!r.ok) throw new Error('Failed to update'); return r.json(); },
+    async remove(id){ const r = await fetch('/api/tasks/'+id, { method:'DELETE' }); if(!r.ok) throw new Error('Failed to delete'); return r.json(); },
+    async complete(id, data){ const r = await fetch('/api/tasks/'+id+'/complete', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(data) }); if(!r.ok) throw new Error('Failed to complete'); return r.json(); }
+  };
 
-  // ---------- Migration from older versions ----------
-  function migrateToUnified(){
-    try {
-      const FREQ_DAYS_MAP = { 'Daily':1, 'Weekly':7, 'Monthly':30, 'Monthly (as needed)':30, 'Quarterly':90, 'Per Semester':180, 'Twice a Year':180, 'Annual':365 };
-      const result = [];
-      const oldMatrixRaw = localStorage.getItem(LS_MATRIX_OLD_V4) || localStorage.getItem(LS_MATRIX_OLD_V3);
-      if (oldMatrixRaw) {
-        const oldItems = JSON.parse(oldMatrixRaw);
-        (oldItems||[]).forEach(it => {
-          const history = [];
-          let earliestPending = null;
-          Object.keys(it.monthData||{}).forEach(mKey => {
-            const raw = it.monthData[mKey];
-            const entries = Array.isArray(raw) ? raw : (raw ? [raw] : []);
-            entries.forEach(e => {
-              if (e && e.date) {
-                if (e.done) history.push({ date: e.date, cost: Number(e.expense||0), notes:'' });
-                else if (!earliestPending || e.date < earliestPending) earliestPending = e.date;
-              }
-            });
-          });
-          history.sort((a,b)=> a.date < b.date ? -1 : 1);
-          const freqDays = FREQ_DAYS_MAP[it.frequency] || null;
-          let nextDue = earliestPending || '';
-          if (!nextDue && freqDays && history.length) {
-            const last = new Date(history[history.length-1].date+'T00:00:00');
-            last.setDate(last.getDate()+freqDays);
-            nextDue = last.toISOString().slice(0,10);
-          }
-          const estCostM = Number(it.estCost||0);
-          const annualBudgetM = it.annualCost ? Number(it.annualCost) : (freqDays ? Math.round(estCostM * (365/freqDays)) : 0);
-          result.push({ id: it.id || uid(), name: it.activity, area: it.area, type: it.type || 'Maintenance', frequencyDays: freqDays, pic: it.pic||'', estCost: estCostM, annualBudget: annualBudgetM, nextDue, notes:'', completedOnce:false, history });
-        });
-      }
-      const oldIncRaw = localStorage.getItem(LS_INCIDENTAL_OLD);
-      if (oldIncRaw) {
-        const oldInc = JSON.parse(oldIncRaw);
-        (oldInc||[]).forEach(r => {
-          result.push({ id: r.id || uid(), name: r.desc, area: r.area||'', type:'Insidental', frequencyDays:null, pic: r.pic||'', estCost: Number(r.cost||0), nextDue: r.status==='Selesai' ? '' : (r.date||''), notes: r.notes||'', completedOnce: r.status==='Selesai', history: r.date ? [{date:r.date, cost:Number(r.cost||0), notes:r.notes||''}] : [] });
-        });
-      }
-      return result.length ? result : null;
-    } catch(e){ return null; }
-  }
-
-  function loadTasks(){
-    try {
-      const v = JSON.parse(localStorage.getItem(LS_TASKS));
-      if (v && v.length) return v;
-      const migrated = migrateToUnified();
-      if (migrated) { saveTasks(migrated); return migrated; }
-      const s = seedTasks(); saveTasks(s); return s;
-    } catch(e){
-      const migrated = migrateToUnified();
-      if (migrated) { saveTasks(migrated); return migrated; }
-      const s = seedTasks(); saveTasks(s); return s;
-    }
-  }
-  function saveTasks(v){ localStorage.setItem(LS_TASKS, JSON.stringify(v)); }
-  let tasks = loadTasks();
+  let tasks = [];
+  async function refreshTasks(){ tasks = await API.list(); }
 
   // ---------- Status ----------
   function computeStatus(it){
@@ -611,12 +689,14 @@
 
   // ---------- Tabs ----------
   document.querySelectorAll('.tab-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
+    btn.addEventListener('click', async () => {
       document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
       document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
       btn.classList.add('active');
       document.getElementById('panel-'+btn.dataset.tab).classList.add('active');
+      try { await refreshTasks(); } catch(e) { console.error('Failed to refresh tasks', e); }
       if (btn.dataset.tab === 'dashboard') renderDashboard();
+      if (btn.dataset.tab === 'tasks') renderTasks();
       if (btn.dataset.tab === 'history') renderHistoryLog();
     });
   });
@@ -740,7 +820,7 @@
     taskModalBg.classList.add('open');
   }
 
-  document.getElementById('task-save').addEventListener('click', () => {
+  document.getElementById('task-save').addEventListener('click', async () => {
     const id = document.getElementById('task-id').value;
     const name = document.getElementById('task-name').value.trim();
     if (!name) { alert('Task name is required'); return; }
@@ -748,9 +828,7 @@
     let frequencyDays = null;
     if (freqVal === 'custom') frequencyDays = Number(document.getElementById('task-customdays').value || 0) || null;
     else if (freqVal) frequencyDays = Number(freqVal);
-    const existing = id ? tasks.find(t => t.id === id) : null;
     const data = {
-      id: id || uid(),
       name,
       area: document.getElementById('task-area').value.trim(),
       type: document.getElementById('task-type').value,
@@ -759,51 +837,66 @@
       estCost: Number(document.getElementById('task-estcost').value || 0),
       annualBudget: Number(document.getElementById('task-annualbudget').value || 0),
       nextDue: document.getElementById('task-nextdue').value,
-      notes: document.getElementById('task-notes').value.trim(),
-      completedOnce: existing ? existing.completedOnce : false,
-      history: existing ? existing.history : []
+      notes: document.getElementById('task-notes').value.trim()
     };
-    if (id) { tasks = tasks.map(t => t.id === id ? data : t); } else { tasks.push(data); }
-    saveTasks(tasks);
-    taskModalBg.classList.remove('open');
-    populateYearFilter();
-    populateHistoryYearFilter();
-    renderTasks();
+    const saveBtn = document.getElementById('task-save');
+    saveBtn.disabled = true; saveBtn.textContent = 'Saving...';
+    try {
+      if (id) { await API.update(id, data); } else { await API.create(data); }
+      await refreshTasks();
+      taskModalBg.classList.remove('open');
+      populateYearFilter();
+      populateHistoryYearFilter();
+      renderTasks();
+    } catch(e) {
+      console.error(e);
+      alert('Failed to save task. Please check your connection and try again.');
+    } finally {
+      saveBtn.disabled = false; saveBtn.textContent = 'Save';
+    }
   });
 
   // ---------- Complete Modal ----------
   const completeModalBg = document.getElementById('complete-modal-bg');
   document.getElementById('complete-cancel').addEventListener('click', () => completeModalBg.classList.remove('open'));
-  document.getElementById('complete-save').addEventListener('click', () => {
+  document.getElementById('complete-save').addEventListener('click', async () => {
     const id = document.getElementById('complete-id').value;
-    const it = tasks.find(t => t.id === id);
-    if (!it) return;
     const date = document.getElementById('complete-date').value || todayStr();
     const cost = Number(document.getElementById('complete-cost').value || 0);
     const notes = document.getElementById('complete-notes').value.trim();
-    it.history = it.history || [];
-    it.history.push({ date, cost, notes });
-    if (it.frequencyDays) {
-      const next = new Date(date+'T00:00:00');
-      next.setDate(next.getDate() + it.frequencyDays);
-      it.nextDue = next.toISOString().slice(0,10);
-    } else {
-      it.completedOnce = true;
-      it.nextDue = '';
+    const saveBtn = document.getElementById('complete-save');
+    saveBtn.disabled = true; saveBtn.textContent = 'Saving...';
+    try {
+      await API.complete(id, { date, cost, notes });
+      await refreshTasks();
+      completeModalBg.classList.remove('open');
+      populateYearFilter();
+      populateHistoryYearFilter();
+      renderTasks();
+      renderDashboard();
+      renderHistoryLog();
+    } catch(e) {
+      console.error(e);
+      alert('Failed to save. Please check your connection and try again.');
+    } finally {
+      saveBtn.disabled = false; saveBtn.textContent = 'Save';
     }
-    saveTasks(tasks);
-    completeModalBg.classList.remove('open');
-    populateYearFilter();
-    populateHistoryYearFilter();
-    renderTasks();
-    renderDashboard();
-    renderHistoryLog();
   });
 
   // ---------- Global actions ----------
   window.OMT = {
     editTask(id){ openTaskModal(tasks.find(t=>t.id===id)); },
-    deleteTask(id){ if(confirm('Delete this task along with its history?')){ tasks = tasks.filter(t=>t.id!==id); saveTasks(tasks); populateYearFilter(); populateHistoryYearFilter(); renderTasks(); renderHistoryLog(); } },
+    async deleteTask(id){
+      if(!confirm('Delete this task along with its history?')) return;
+      try {
+        await API.remove(id);
+        await refreshTasks();
+        populateYearFilter(); populateHistoryYearFilter(); renderTasks(); renderHistoryLog();
+      } catch(e) {
+        console.error(e);
+        alert('Failed to delete task. Please check your connection and try again.');
+      }
+    },
     toggleHistory(id){ expandedId = expandedId === id ? null : id; renderTasks(); },
     openComplete(id){
       const it = tasks.find(t=>t.id===id);
@@ -940,10 +1033,10 @@
 
   // ---------- Report Export ----------
   const categoryDefs = [
-    { key:'Maintenance', label:'Maintenance', color:'#2F80ED', bg:'#EAF3FE' },
-    { key:'Purchase',    label:'Purchase',    color:'#5CA24C', bg:'#EAFBF0' },
-    { key:'Insidental',  label:'Incident',    color:'#01416C', bg:'#FFF1DE' },
-    { key:'Tagihan',     label:'Bill',        color:'#01416C', bg:'#FFF8E6' }
+    { key:'Maintenance', label:'Maintenance', color:'#2F80ED', bg:'#EAF3FE', chartColor:'#2F80ED' },
+    { key:'Purchase',    label:'Purchase',    color:'#5CA24C', bg:'#EAFBF0', chartColor:'#5CA24C' },
+    { key:'Insidental',  label:'Incident',    color:'#01416C', bg:'#FFF1DE', chartColor:'#E8973C' },
+    { key:'Tagihan',     label:'Bill',        color:'#01416C', bg:'#FFF8E6', chartColor:'#C9971B' }
   ];
   function catLabel(key){ const c = categoryDefs.find(x => x.key === key); return c ? c.label : key; }
   function catPill(stat){ return `<span class="cat-pill" style="background:${stat.bg};color:${stat.color};">${stat.label}</span>`; }
@@ -955,6 +1048,93 @@
     return `<div class="bar-track"><div class="bar-fill" style="width:${widthPct}%;background:${color};"></div></div><div class="bar-label">${pct}% of budget used</div>`;
   }
 
+  function buildDayLabels(daysInMonth){
+    const labels = [];
+    for (let d=1; d<=daysInMonth; d++) labels.push((d===1 || d%5===0 || d===daysInMonth) ? String(d) : '');
+    return labels;
+  }
+
+  // Compact inline SVG point/line timeseries — no external chart library needed,
+  // so it renders instantly and prints/exports to PDF reliably. Pure dots + a
+  // connecting line (no bars), which reads cleanly for both dense and sparse data
+  // since a flat line along zero is a normal, expected part of a line chart.
+  function buildMiniTimeseries(labels, values, opts){
+    opts = opts || {};
+    const width = opts.width || 736;
+    const height = opts.height || 118;
+    const lineColor = opts.color || '#01416C';
+    const padTop = 14, padBottom = 18, padSide = 4;
+    const chartW = width - padSide*2;
+    const chartH = height - padTop - padBottom;
+    const maxVal = Math.max.apply(null, values.concat([0]));
+    if (maxVal <= 0) return null;
+    const n = values.length;
+    const step = n > 1 ? chartW / (n-1) : 0;
+    let labelEls = '';
+    const pts = [];
+    for (let i=0;i<n;i++){
+      const v = values[i];
+      const hRaw = v>0 ? (v/maxVal)*chartH : 0;
+      const x = padSide + i*step;
+      const y = padTop + (chartH - hRaw);
+      pts.push([x,y]);
+      if (labels[i]) labelEls += `<text x="${x.toFixed(1)}" y="${height-5}" font-size="8" fill="#828282" text-anchor="middle" font-family="Inter,sans-serif">${labels[i]}</text>`;
+    }
+    const gridLines = [0.25,0.5,0.75,1].map(f => {
+      const y = padTop + chartH*(1-f);
+      return `<line x1="${padSide}" y1="${y.toFixed(1)}" x2="${width-padSide}" y2="${y.toFixed(1)}" stroke="#EDEFF2" stroke-width="1"/>`;
+    }).join('');
+    const maxLabel = `<text x="${padSide}" y="${padTop-4}" font-size="8" fill="#BDBDBD" font-family="Inter,sans-serif">max ${fmtRp(maxVal)}</text>`;
+    const linePath = pts.map((p,i) => `${i===0?'M':'L'}${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(' ');
+    const line = `<path d="${linePath}" fill="none" stroke="${lineColor}" stroke-width="1.75" stroke-linejoin="round" stroke-linecap="round"/>`;
+    const dots = pts.map((p,i) => values[i] > 0
+      ? `<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="2.6" fill="${lineColor}"/>`
+      : `<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="1.6" fill="#fff" stroke="${lineColor}" stroke-width="1.2"/>`
+    ).join('');
+    return `<svg viewBox="0 0 ${width} ${height}" width="100%" height="${height}" xmlns="http://www.w3.org/2000/svg">${gridLines}${line}${dots}${labelEls}${maxLabel}</svg>`;
+  }
+
+  // Multi-series point/line timeseries — one line per category, plus a small
+  // legend row above the chart. Kept to solid dots only (no hollow zero-markers)
+  // since 4 overlapping series already carries enough visual information;
+  // no number labels are drawn on the chart itself, only on hover-free legend +
+  // axis, so lines can cross freely without becoming unreadable.
+  function buildMultiTimeseries(labels, series, opts){
+    opts = opts || {};
+    const width = opts.width || 736;
+    const height = opts.height || 140;
+    const padTop = 14, padBottom = 18, padSide = 4;
+    const chartW = width - padSide*2;
+    const chartH = height - padTop - padBottom;
+    const allVals = series.reduce((acc, s) => acc.concat(s.values), []);
+    const maxVal = Math.max.apply(null, allVals.concat([0]));
+    if (maxVal <= 0) return null;
+    const n = labels.length;
+    const step = n > 1 ? chartW / (n-1) : 0;
+    let labelEls = '';
+    for (let i=0;i<n;i++){
+      if (labels[i]) labelEls += `<text x="${(padSide+i*step).toFixed(1)}" y="${height-5}" font-size="8" fill="#828282" text-anchor="middle" font-family="Inter,sans-serif">${labels[i]}</text>`;
+    }
+    const gridLines = [0.25,0.5,0.75,1].map(f => {
+      const y = padTop + chartH*(1-f);
+      return `<line x1="${padSide}" y1="${y.toFixed(1)}" x2="${width-padSide}" y2="${y.toFixed(1)}" stroke="#EDEFF2" stroke-width="1"/>`;
+    }).join('');
+    const maxLabel = `<text x="${padSide}" y="${padTop-4}" font-size="8" fill="#BDBDBD" font-family="Inter,sans-serif">max ${fmtRp(maxVal)}</text>`;
+    let seriesEls = '';
+    series.forEach(s => {
+      const pts = s.values.map((v,i) => {
+        const hRaw = v>0 ? (v/maxVal)*chartH : 0;
+        return [padSide+i*step, padTop + (chartH - hRaw)];
+      });
+      const path = pts.map((p,i) => `${i===0?'M':'L'}${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(' ');
+      const dots = pts.map((p,i) => s.values[i] > 0 ? `<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="2.2" fill="${s.color}"/>` : '').join('');
+      seriesEls += `<path d="${path}" fill="none" stroke="${s.color}" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>${dots}`;
+    });
+    const legend = `<div class="mini-chart-legend">${series.map(s => `<span><i style="background:${s.color}"></i>${escapeHtml(s.name)}</span>`).join('')}</div>`;
+    const svg = `<svg viewBox="0 0 ${width} ${height}" width="100%" height="${height}" xmlns="http://www.w3.org/2000/svg">${gridLines}${seriesEls}${labelEls}${maxLabel}</svg>`;
+    return legend + svg;
+  }
+
   const REPORT_STYLE = `
   @page{ size:A4; margin:0; }
   :root{ --navy:#01416C; --navy-soft:#EAF3FE; --green:#74C162; --green-dark:#5CA24C; --orange:#FBB439; --grey:#828282; --grey-light:#BDBDBD; --border:#E5E9ED; --text:#2B2B2B; }
@@ -963,24 +1143,32 @@
   body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;color:var(--text);margin:0;padding:24px 0;background:#7c8388;}
   .page{width:210mm;min-height:297mm;margin:0 auto;padding:16mm 15mm 18mm;background:#fff;box-shadow:0 2px 14px rgba(0,0,0,.25);}
   .report-header{border-bottom:2px solid var(--navy);padding-bottom:14px;margin-bottom:24px;}
+  .report-eyebrow{font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--green-dark);display:flex;align-items:center;gap:7px;margin-bottom:6px;}
+  .report-eyebrow::before{content:'';width:14px;height:2px;background:var(--green);display:inline-block;flex:none;}
   h1{color:var(--navy);font-size:20px;margin:0 0 6px;font-weight:700;letter-spacing:-0.01em;}
   .meta{color:var(--grey);font-size:11.5px;}
   h2{color:var(--navy);font-size:13px;font-weight:700;margin:26px 0 12px;padding-bottom:7px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:7px;text-transform:uppercase;letter-spacing:.03em;}
   h2::before{content:'';width:14px;height:2px;border-radius:0;background:var(--green);display:inline-block;flex:none;}
   h2:first-of-type{margin-top:20px;}
   .cards{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:4px;}
-  .card{border:1px solid var(--border);border-top:3px solid var(--navy);border-radius:8px;padding:10px 11px;background:#fff;min-width:0;}
+  .card{position:relative;border:1px solid var(--border);border-radius:8px;padding:10px 11px;background:#fff;min-width:0;}
+  .card::before{content:'';position:absolute;top:9px;right:9px;width:6px;height:6px;border-radius:50%;background:var(--navy-soft);}
   .card .label{font-size:9.5px;color:var(--grey);margin-bottom:5px;font-weight:600;text-transform:uppercase;letter-spacing:.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
   .card .value{font-size:14.5px;font-weight:700;color:var(--navy);line-height:1.25;font-variant-numeric:tabular-nums;word-break:break-word;}
   .card .sub{font-size:9.5px;color:var(--grey);margin-top:4px;}
-  .card.warn{border-top-color:var(--orange);} .card.warn .value{color:var(--orange);}
-  .card.good{border-top-color:var(--green);} .card.good .value{color:var(--green);}
+  .card.warn::before{background:var(--orange);} .card.warn .value{color:var(--navy);}
+  .card.good::before{background:var(--green-dark);} .card.good .value{color:var(--green-dark);}
   table{width:100%;border-collapse:collapse;margin-bottom:4px;table-layout:fixed;}
   th{text-align:left;font-size:9.5px;text-transform:uppercase;letter-spacing:.02em;color:var(--grey);padding:7px 9px;background:#FAFBFD;border-bottom:1px solid var(--border);font-weight:600;}
   td{padding:7px 9px;font-size:11px;border-bottom:1px solid var(--border);color:var(--text);word-wrap:break-word;overflow-wrap:break-word;line-height:1.4;}
   tr:last-child td{border-bottom:none;}
-  .section-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
-  .section-grid table{table-layout:auto;}
+  .section-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;min-width:0;}
+  .section-grid > div{min-width:0;overflow:hidden;}
+  .section-grid table{table-layout:fixed;}
+  .section-grid th:nth-child(1),.section-grid td:nth-child(1){width:46%;}
+  .section-grid th:nth-child(2),.section-grid td:nth-child(2){width:30%;}
+  .section-grid th:nth-child(3),.section-grid td:nth-child(3){width:24%;}
+  .section-grid td, .section-grid th{overflow-wrap:break-word;word-break:break-word;padding:6px 6px;font-size:10.5px;}
   .section-grid strong{font-size:11px;color:var(--navy);display:block;margin-bottom:6px;}
   .footer{margin-top:32px;padding-top:14px;border-top:1px solid var(--border);font-size:9.5px;color:var(--grey-light);text-align:center;}
   .summary-box{background:var(--navy-soft);border-radius:8px;padding:14px 16px;margin:0 0 6px;}
@@ -999,13 +1187,18 @@
   .bar-label{font-size:10px;color:var(--grey);}
   .cat-pill{display:inline-block;padding:3px 9px;border-radius:999px;font-size:10.5px;font-weight:700;white-space:nowrap;}
   .empty-note{text-align:center;color:var(--grey-light);padding:18px;font-size:11px;border:1px dashed var(--border);border-radius:8px;}
+  .mini-chart-label{font-size:9.5px;font-weight:700;color:var(--grey);text-transform:uppercase;letter-spacing:.03em;margin:14px 0 4px;}
+  .mini-chart-box{border:1px solid var(--border);border-radius:8px;padding:8px 10px 4px;}
+  .mini-chart-legend{display:flex;flex-wrap:wrap;gap:12px;padding:2px 2px 8px;}
+  .mini-chart-legend span{display:inline-flex;align-items:center;gap:5px;font-size:9.5px;color:var(--text);font-weight:600;}
+  .mini-chart-legend i{width:8px;height:8px;border-radius:50%;display:inline-block;}
   @media print{
     body{background:#fff;padding:0;}
     .page{width:auto;min-height:0;margin:0;padding:14mm 13mm;box-shadow:none;}
     h2{break-after:avoid;page-break-after:avoid;}
     table{break-inside:auto;}
     tr{break-inside:avoid;page-break-inside:avoid;}
-    .summary-box,.card,.stat-box{break-inside:avoid;page-break-inside:avoid;}
+    .summary-box,.card,.stat-box,.mini-chart-box{break-inside:avoid;page-break-inside:avoid;}
   }`;
 
   function computeReportData(){
@@ -1013,6 +1206,8 @@
     const overdueCount = tasks.filter(it => computeStatus(it).key === 'overdue').length;
     const soonCount = tasks.filter(it => computeStatus(it).key === 'soon').length;
     const monthActual = new Array(12).fill(0);
+    const monthByType = {};
+    categoryDefs.forEach(c => { monthByType[c.key] = new Array(12).fill(0); });
     let yearActual = 0;
     const catTotals = {}, catTx = {};
     categoryDefs.forEach(c => { catTotals[c.key] = 0; catTx[c.key] = 0; });
@@ -1024,7 +1219,9 @@
         const hy = Number(h.date.slice(0,4));
         if (hy === yearSel) {
           yearActual += cost;
-          monthActual[Number(h.date.slice(5,7))-1] += cost;
+          const mIdx = Number(h.date.slice(5,7))-1;
+          monthActual[mIdx] += cost;
+          if (monthByType[it.type]) monthByType[it.type][mIdx] += cost;
           catTotals[it.type] = (catTotals[it.type]||0) + cost;
           catTx[it.type] = (catTx[it.type]||0) + 1;
           if (it.type === 'Insidental') incidentEntries.push({ date: h.date, name: it.name, area: it.area, cost, notes: h.notes||'' });
@@ -1062,11 +1259,11 @@
     });
     [overdueList, thisMonthList, nextMonthList].forEach(arr => arr.sort((a,b)=> (a.nextDue||'') < (b.nextDue||'') ? -1 : 1));
 
-    return { yearSel, overdueCount, soonCount, monthActual, yearActual, totalAnnualBudget, budgetPct, overdueList, thisMonthList, nextMonthList, categoryStats, incidentEntries, incidentCount, incidentTotal };
+    return { yearSel, overdueCount, soonCount, monthActual, monthByType, yearActual, totalAnnualBudget, budgetPct, overdueList, thisMonthList, nextMonthList, categoryStats, incidentEntries, incidentCount, incidentTotal };
   }
 
   function reportTaskRow(it){
-    return `<tr><td>${escapeHtml(it.name)}</td><td>${escapeHtml(it.area||'-')}</td><td>${escapeHtml(it.pic||'-')}</td><td>${it.nextDue?fmtDate(it.nextDue):'-'}</td></tr>`;
+    return `<tr><td>${escapeHtml(it.name)}</td><td>${escapeHtml(it.area||'-')}</td><td>${it.nextDue?fmtDate(it.nextDue):'-'}</td></tr>`;
   }
 
   function buildOverviewSummary(d){
@@ -1107,7 +1304,13 @@
     const variance = d.totalAnnualBudget ? d.yearActual - d.totalAnnualBudget : null;
     const varianceClass = variance == null ? '' : (variance > 0 ? 'variance-over' : 'variance-under');
     const varianceLabel = variance == null ? 'N/A' : (variance > 0 ? `+${fmtRp(variance)}` : `-${fmtRp(Math.abs(variance))}`);
-    const monthRows = MONTHS.map((m,idx) => `<tr><td>${m}</td><td style="text-align:right">${fmtRp(d.monthActual[idx])}</td></tr>`).join('');
+    const monthSeries = categoryDefs
+      .map(c => ({ name: c.label, color: c.chartColor, values: d.monthByType[c.key] }))
+      .filter(s => s.values.some(v => v > 0));
+    const monthChartSvg = buildMultiTimeseries(MONTHS, monthSeries);
+    const monthChartHtml = monthChartSvg
+      ? `<div class="mini-chart-label">Monthly Trend by Category &mdash; ${d.yearSel}</div><div class="mini-chart-box">${monthChartSvg}</div>`
+      : `<div class="mini-chart-label">Monthly Trend &mdash; ${d.yearSel}</div><div class="empty-note">No expense data recorded in ${d.yearSel} yet.</div>`;
     const expenseSummaryHtml = `
       <div class="stat-row">
         <div class="stat-box"><div class="label">Annual Budget</div><div class="value">${fmtRp(d.totalAnnualBudget)}</div></div>
@@ -1116,7 +1319,7 @@
         <div class="stat-box"><div class="label">Budget Used</div><div class="value">${d.totalAnnualBudget ? d.budgetPct+'%' : 'N/A'}</div></div>
       </div>
       ${buildBudgetBar(d.yearActual, d.totalAnnualBudget)}
-      <table style="margin-top:16px;"><thead><tr><th>Month</th><th style="text-align:right">Actual Expense</th></tr></thead><tbody>${monthRows}</tbody></table>`;
+      ${monthChartHtml}`;
 
     const categoryRows = d.categoryStats.map(c => `<tr><td>${catPill(c)}</td><td>${c.taskCount}</td><td>${c.transactions}</td><td style="text-align:right">${fmtRp(c.totalActual)}</td><td style="text-align:right">${c.pct}%</td></tr>`).join('');
     const categoryHtml = `<table><thead><tr><th>Category</th><th>Tasks</th><th>Entries</th><th style="text-align:right">Total Actual</th><th style="text-align:right">% of Expense</th></tr></thead><tbody>${categoryRows}</tbody></table>`;
@@ -1131,11 +1334,12 @@
     const nextMonthRows = d.nextMonthList.length ? d.nextMonthList.map(reportTaskRow).join('') : '<tr><td colspan="4" style="text-align:center;color:#828282;">None</td></tr>';
 
     return `<!DOCTYPE html>
-<html lang="en"><head><meta charset="UTF-8"><title>Office Maintenance Overview Report - ${d.yearSel}</title>
+<html lang="en"><head><meta charset="UTF-8"><title>YK Watchtower — Overview Report ${d.yearSel}</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"><style>${REPORT_STYLE}</style></head>
 <body><div class="page">
   <div class="report-header">
-    <h1>YK Watchtower &mdash; Overview Report</h1>
+    <div class="report-eyebrow">YK Watchtower &middot; Yogyakarta Office</div>
+    <h1>Overview Report</h1>
     <div class="meta">Generated ${genDate} &middot; Report year ${d.yearSel}</div>
   </div>
 
@@ -1161,9 +1365,9 @@
 
   <h2>Needs Attention</h2>
   <div class="section-grid">
-    <div><strong>Overdue</strong><table><thead><tr><th>Task</th><th>Area</th><th>Handled By</th><th>Due</th></tr></thead><tbody>${overdueRows}</tbody></table></div>
-    <div><strong>This Month</strong><table><thead><tr><th>Task</th><th>Area</th><th>Handled By</th><th>Due</th></tr></thead><tbody>${thisMonthRows}</tbody></table></div>
-    <div><strong>Next Month</strong><table><thead><tr><th>Task</th><th>Area</th><th>Handled By</th><th>Due</th></tr></thead><tbody>${nextMonthRows}</tbody></table></div>
+    <div><strong>Overdue</strong><table><thead><tr><th>Task</th><th>Area</th><th>Due</th></tr></thead><tbody>${overdueRows}</tbody></table></div>
+    <div><strong>This Month</strong><table><thead><tr><th>Task</th><th>Area</th><th>Due</th></tr></thead><tbody>${thisMonthRows}</tbody></table></div>
+    <div><strong>Next Month</strong><table><thead><tr><th>Task</th><th>Area</th><th>Due</th></tr></thead><tbody>${nextMonthRows}</tbody></table></div>
   </div>
 
   <div class="footer">YK Watchtower &middot; Internal Tool &middot; qiscus.com</div>
@@ -1241,6 +1445,19 @@
     const variance = monthlyBudget ? totalExpense - monthlyBudget : null;
     const varianceClass = variance == null ? '' : (variance > 0 ? 'variance-over' : 'variance-under');
     const varianceLabel = variance == null ? 'N/A' : (variance > 0 ? `+${fmtRp(variance)}` : `-${fmtRp(Math.abs(variance))}`);
+    const daysInMonth = new Date(yearSel, month, 0).getDate();
+    const dailyByType = {};
+    categoryDefs.forEach(c => { dailyByType[c.key] = new Array(daysInMonth).fill(0); });
+    completed.forEach(r => { const day = Number(r.date.slice(8,10)); if (day>=1 && day<=daysInMonth && dailyByType[r.type]) dailyByType[r.type][day-1] += r.cost; });
+    const dayLabels = buildDayLabels(daysInMonth);
+    const dailySeries = categoryDefs
+      .map(c => ({ name: c.label, color: c.chartColor, values: dailyByType[c.key] }))
+      .filter(s => s.values.some(v => v > 0));
+    const dailyChartSvg = buildMultiTimeseries(dayLabels, dailySeries, { height:110 });
+    const dailyChartHtml = dailyChartSvg
+      ? `<div class="mini-chart-label">Daily Expense Trend by Category</div><div class="mini-chart-box">${dailyChartSvg}</div>`
+      : `<div class="mini-chart-label">Daily Expense Trend by Category</div><div class="empty-note">No expense recorded this month yet.</div>`;
+
     const expenseSummaryHtml = `
       <div class="stat-row">
         <div class="stat-box"><div class="label">Avg Monthly Budget</div><div class="value">${fmtRp(Math.round(monthlyBudget))}</div></div>
@@ -1248,7 +1465,8 @@
         <div class="stat-box ${varianceClass}"><div class="label">Variance</div><div class="value">${varianceLabel}</div></div>
         <div class="stat-box"><div class="label">Tasks Completed</div><div class="value">${completed.length}</div></div>
       </div>
-      ${buildBudgetBar(totalExpense, monthlyBudget)}`;
+      ${buildBudgetBar(totalExpense, monthlyBudget)}
+      ${dailyChartHtml}`;
 
     const categoryRows = categoryStatsMonth.map(c => `<tr><td>${catPill(c)}</td><td>${c.transactions}</td><td style="text-align:right">${fmtRp(c.totalActual)}</td><td style="text-align:right">${c.pct}%</td></tr>`).join('');
     const categoryHtml = categoryStatsMonth.some(c => c.transactions > 0)
@@ -1261,11 +1479,12 @@
       : `<div class="empty-note">No incidents recorded this month.</div>`;
 
     return `<!DOCTYPE html>
-<html lang="en"><head><meta charset="UTF-8"><title>Office Maintenance Monthly Report - ${MONTH_NAMES_FULL[month-1]} ${yearSel}</title>
+<html lang="en"><head><meta charset="UTF-8"><title>YK Watchtower — Monthly Report ${MONTH_NAMES_FULL[month-1]} ${yearSel}</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"><style>${REPORT_STYLE}</style></head>
 <body><div class="page">
   <div class="report-header">
-    <h1>YK Watchtower &mdash; Monthly Report</h1>
+    <div class="report-eyebrow">YK Watchtower &middot; Yogyakarta Office</div>
+    <h1>Monthly Report</h1>
     <div class="meta">${MONTH_NAMES_FULL[month-1]} ${yearSel} &middot; Generated ${genDate}</div>
   </div>
 
@@ -1493,11 +1712,21 @@
   }
 
   // ---------- Init ----------
-  populateYearFilter();
-  populateHistoryYearFilter();
-  renderTasks();
-  renderDashboard();
-  renderHistoryLog();
+  async function boot(){
+    try {
+      await refreshTasks();
+    } catch(e) {
+      console.error('Failed to load initial data', e);
+      alert('Could not connect to the server. Please refresh the page.');
+      return;
+    }
+    populateYearFilter();
+    populateHistoryYearFilter();
+    renderTasks();
+    renderDashboard();
+    renderHistoryLog();
+  }
+  boot();
 })();
 </script>
 </body>

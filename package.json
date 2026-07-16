@@ -1,0 +1,12 @@
+{
+  "name": "yk-watchtower-server",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.22.2",
+    "pg": "^8.22.0"
+  }
+}
