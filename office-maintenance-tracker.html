@@ -1,0 +1,1504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>YK Watchtower</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.0/dist/chart.umd.js" integrity="sha384-iU8HYtnGQ8Cy4zl7gbNMOhsDTTKX02BTXptVP/vqAWIaTfM7isw76iyZCsjL2eVi" crossorigin="anonymous"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    color-scheme: light;
+    --navy: #01416C;
+    --navy-soft: #EAF1F6;
+    --green: #74C162;
+    --green-dark: #5CA24C;
+    --green-soft: #EAFBF0;
+    --yellow: #FFD97C;
+    --yellow-soft: #FFF8E6;
+    --orange: #FBB439;
+    --orange-soft: #FFF1DE;
+    --blue: #2F80ED;
+    --blue-soft: #EAF3FE;
+    --black: #1A1A1A;
+    --grey-dark: #4F4F4F;
+    --grey: #828282;
+    --grey-light: #BDBDBD;
+    --grey-superlight: #E0E0E0;
+    --bg: #F7F8FA;
+    --card: #FFFFFF;
+    --border: #E0E0E0;
+  }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--grey-dark); font-family:'Inter',-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; font-size:13px; letter-spacing:-0.01em; }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 0 24px 50px; }
+
+
+  .topbar {
+    background: var(--navy);
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    margin-bottom: 22px;
+  }
+  .topbar-inner { max-width:1180px; margin:0 auto; padding:16px 24px; display:flex; align-items:center; justify-content:space-between; }
+  .brand { display:flex; align-items:center; gap:16px; }
+  .brand-divider { width:1px; height:26px; background:rgba(255,255,255,0.22); flex:none; }
+  .brand-logo { height:22px; width:auto; display:block; filter:brightness(0) invert(1); }
+  .brand-beacon { display:inline-block; width:7px; height:7px; border-radius:50%; background:var(--green); margin-left:8px; vertical-align:middle; animation: beacon-breathe 2s ease-in-out infinite; }
+  @keyframes beacon-breathe { 0%,100%{ opacity:1; } 50%{ opacity:0.4; } }
+  .brand-text { display:flex; flex-direction:column; gap:1px; }
+  .brand-title { font-weight:700; font-size:16.5px; letter-spacing:0.01em; color:#fff; line-height:1.1; }
+  .brand-caption { font-size:10.5px; color:rgba(255,255,255,0.6); letter-spacing:0.02em; }
+  .year-field { display:flex; align-items:center; gap:8px; }
+  .year-field .hint { color:rgba(255,255,255,0.6); font-size:11px; text-transform:uppercase; letter-spacing:.03em; }
+  .year-field select { font-weight:600; color:#fff; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.22); }
+  .year-field select:focus { border-color:var(--green); box-shadow:0 0 0 3px rgba(116,193,98,0.25); }
+
+  header.page-header { margin-bottom: 10px; }
+  .eyebrow { font-size:11px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:var(--green-dark); display:flex; align-items:center; gap:7px; margin-bottom:6px; }
+  .eyebrow::before { content:''; width:16px; height:2px; background:var(--green); display:inline-block; }
+  h1 { font-size: 21px; font-weight:700; margin: 0 0 4px; color: var(--navy); letter-spacing:-0.01em; }
+  .sub { color: var(--grey); font-size: 12.5px; max-width:640px; line-height:1.55; }
+
+  .tabs { display: flex; gap: 4px; margin: 14px 0 16px; border-bottom: 1px solid var(--border); }
+  .tab-btn { border:none; background:none; padding:10px 16px; font-size:12.5px; font-weight:700; letter-spacing:0.02em; text-transform:uppercase; color:var(--grey); cursor:pointer; border-bottom:2px solid transparent; margin-bottom:-1px; transition:color .15s; }
+  .tab-btn:hover { color:var(--navy); }
+  .tab-btn.active { color: var(--navy); border-bottom-color: var(--green); }
+  .panel { display:none; }
+  .panel.active { display:block; }
+
+  .cards { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-bottom: 18px; }
+  .card { position:relative; background: linear-gradient(180deg,#fff 0%, #FBFCFD 100%); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; }
+  .card::before { content:''; position:absolute; top:12px; right:12px; width:7px; height:7px; border-radius:50%; background:var(--navy-soft); }
+  .card .label { font-size: 10.5px; color: var(--grey); margin-bottom: 7px; font-weight:600; text-transform:uppercase; letter-spacing:.03em; }
+  .card .value { font-size: 19px; font-weight: 700; color: var(--navy); font-variant-numeric:tabular-nums; }
+  .card .sub-value { font-size: 11px; color: var(--grey); margin-top: 4px; font-weight:600; }
+  .card.warn::before { background:var(--orange); box-shadow:0 0 0 3px var(--orange-soft); }
+  .card.warn .value { color: var(--navy); }
+  .card.bad::before { background:var(--orange); box-shadow:0 0 0 3px var(--orange-soft); animation: beacon-ping-soft 1.8s ease-in-out infinite; }
+  .card.bad .value { color: var(--navy); }
+  @keyframes beacon-ping-soft { 0%,100%{ opacity:1; } 50%{ opacity:0.35; } }
+  .card.good::before { background:var(--green-dark); box-shadow:0 0 0 3px var(--green-soft); }
+  .card.good .value { color: var(--green-dark); }
+  .reminder-section { background:var(--card); border:1px solid var(--border); border-radius:10px; padding:16px; margin-bottom:18px; }
+  .reminder-section h4 { margin:0 0 12px; font-size:12px; color:var(--navy); font-weight:700; text-transform:uppercase; letter-spacing:.03em; display:flex; align-items:center; gap:7px; }
+  .reminder-section h4::before { content:''; width:14px; height:2px; background:var(--green); display:inline-block; }
+  .reminder-cols { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
+  .reminder-col-title { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.03em; padding:4px 0 8px; border-bottom:2px solid var(--border); margin-bottom:8px; }
+  .reminder-col-title.overdue { color:var(--navy); border-bottom-color:var(--orange); }
+  .reminder-col-title.thismonth { color:var(--navy); border-bottom-color:var(--navy); }
+  .reminder-col-title.nextmonth { color:var(--grey); border-bottom-color:var(--grey-light); }
+  .reminder-item { display:flex; justify-content:space-between; align-items:flex-start; gap:8px; padding:7px 0; border-bottom:1px solid var(--border); }
+  .reminder-item:last-child { border-bottom:none; }
+  .reminder-item-info { min-width:0; }
+  .reminder-item-name { font-weight:600; color:var(--black); font-size:12px; }
+  .reminder-item-meta { font-size:11px; color:var(--grey); }
+  .reminder-empty { font-size:12px; color:var(--grey-light); padding:6px 0; }
+  .charts-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .chart-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 16px; height: 290px; }
+  .chart-card h4 { margin: 0 0 10px; font-size: 11.5px; color: var(--navy); font-weight:700; text-transform:uppercase; letter-spacing:.03em; display:flex; align-items:center; gap:7px; }
+  .chart-card h4::before { content:''; width:14px; height:2px; background:var(--green); display:inline-block; }
+  .chart-card .chart-holder { height: 230px; position: relative; }
+
+  .insights-row { display:grid; grid-template-columns:repeat(2,1fr); gap:14px; margin-bottom:14px; }
+  .insight-card { background:linear-gradient(180deg,#fff 0%, #FBFCFD 100%); border:1px solid var(--border); border-radius:10px; padding:14px 16px; border-left:3px solid var(--green); }
+  .insight-card h4 { margin:0 0 6px; font-size:10.5px; color:var(--grey); font-weight:600; text-transform:uppercase; letter-spacing:.03em; }
+  .insight-card .insight-value { font-size:19px; font-weight:700; color:var(--navy); }
+  .insight-card .insight-note { font-size:11.5px; color:var(--grey); margin-top:4px; }
+  .trend-up { color:var(--navy); }
+  .trend-down { color:var(--green-dark); }
+  .trend-flat { color:var(--grey); }
+
+  .insight-section { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:16px; margin-bottom:14px; }
+  .insight-section h4 { margin:0 0 12px; font-size:11.5px; color:var(--navy); font-weight:700; text-transform:uppercase; letter-spacing:.03em; display:flex; align-items:center; gap:7px; }
+  .insight-section h4::before { content:''; width:14px; height:2px; background:var(--green); display:inline-block; }
+  .cat-budget-row { display:grid; grid-template-columns:120px 1fr 90px 90px 60px; align-items:center; gap:10px; padding:8px 0; border-bottom:1px solid var(--border); }
+  .cat-budget-row:last-child { border-bottom:none; }
+  .cat-budget-name { font-size:12px; font-weight:700; }
+  .cat-budget-figs { font-size:11px; color:var(--grey); text-align:right; }
+  .cat-budget-figs strong { color:var(--black); }
+  .cat-budget-pct { font-size:11.5px; font-weight:700; text-align:right; }
+  .progress-track { background:var(--grey-superlight); border-radius:999px; height:8px; overflow:hidden; }
+  .progress-fill { height:100%; border-radius:999px; }
+
+  .top-tasks-list { display:flex; flex-direction:column; gap:0; }
+  .top-task-row { display:flex; align-items:center; gap:10px; padding:8px 0; border-bottom:1px solid var(--border); }
+  .top-task-row:last-child { border-bottom:none; }
+  .top-task-rank { width:22px; height:22px; border-radius:50%; background:var(--navy-soft); color:var(--navy); font-size:11px; font-weight:700; display:flex; align-items:center; justify-content:center; flex:none; }
+  .top-task-info { flex:1; min-width:0; }
+  .top-task-name { font-size:12.5px; font-weight:700; color:var(--black); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .top-task-meta { font-size:11px; color:var(--grey); }
+  .top-task-cost { font-size:12.5px; font-weight:700; color:var(--navy); white-space:nowrap; }
+
+  .heatmap-row { display:grid; grid-template-columns:120px 1fr 100px; align-items:center; gap:10px; padding:7px 0; }
+  .heatmap-area-name { font-size:12px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .heatmap-bar-track { background:var(--grey-superlight); border-radius:6px; height:20px; overflow:hidden; }
+  .heatmap-bar-fill { height:100%; border-radius:6px; display:flex; align-items:center; }
+  .heatmap-value { font-size:11.5px; font-weight:700; text-align:right; color:var(--navy); }
+  .empty-note-sm { color:var(--grey-light); font-size:12px; text-align:center; padding:16px; }
+
+  .toolbar { display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:12px; flex-wrap:wrap; }
+  .toolbar-left { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+  select, input[type=text], input[type=date], input[type=number], textarea {
+    border:1px solid var(--border); border-radius:8px; padding:6px 9px; font-size:12px; font-family:inherit; background:#fff; color:var(--black);
+  }
+  select:focus, input:focus, textarea:focus { outline:none; border-color: var(--green); box-shadow: 0 0 0 3px rgba(242,153,74,0.18); }
+  textarea { resize:vertical; }
+  button { border:none; border-radius:8px; padding:8px 14px; font-size:13px; font-weight:600; cursor:pointer; font-family:inherit; }
+  .btn-primary { background: var(--green); color:#fff; letter-spacing:.01em; }
+  .btn-primary:hover { background: var(--green-dark); }
+  .btn-ghost { background:#fff; border:1px solid var(--border); color:var(--navy); }
+  .btn-ghost:hover { background:var(--navy-soft); }
+  .btn-danger { background:var(--orange-soft); color:var(--navy); }
+  .btn-danger:hover { background:var(--orange); color:#fff; }
+  .btn-sm { padding:5px 9px; font-size:11.5px; }
+  .row-actions { display:flex; gap:6px; flex-wrap:wrap; }
+  .section-desc { font-size:12px; color:var(--grey); margin: -6px 0 12px; }
+
+  table.simple { width:100%; border-collapse:collapse; background:var(--card); border:1px solid var(--border); border-radius:12px; overflow:hidden; }
+  table.simple thead th { text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:.04em; color:var(--grey); padding:11px 12px; background:#FAFBFD; border-bottom:1px solid var(--border); font-weight:600; }
+  table.simple tbody td { padding:11px 12px; border-bottom:1px solid var(--border); vertical-align:top; color:var(--grey-dark); }
+  table.simple tbody tr:last-child td { border-bottom:none; }
+  table.simple tbody tr:hover { background:var(--navy-soft); }
+  .empty-row td { text-align:center; color:var(--grey); padding:34px; }
+  .muted { color:var(--grey); font-size:11.5px; }
+  .task-name { font-weight:700; color:var(--black); }
+  .task-area { color:var(--grey); font-size:11.5px; }
+
+  .type-pill { display:inline-block; padding:2px 8px; border-radius:999px; font-size:10.5px; font-weight:700; white-space:nowrap; }
+  .type-pill.maintenance { background:var(--blue-soft); color:var(--blue); }
+  .type-pill.purchase { background:var(--green-soft); color:var(--green-dark); }
+  .type-pill.insidental { background:var(--orange-soft); color:var(--navy); }
+  .type-pill.tagihan { background:var(--yellow-soft); color:var(--navy); }
+
+  .badge { display:inline-block; padding:3px 9px; border-radius:999px; font-size:11px; font-weight:700; white-space:nowrap; }
+  .badge.overdue { background:var(--orange-soft); color:var(--navy); }
+  .badge.soon { background:var(--yellow-soft); color:var(--navy); }
+  .badge.upcoming { background:var(--navy-soft); color:var(--navy); }
+  .badge.done { background:var(--green-soft); color:var(--green-dark); }
+
+  .history-row td { background:#FAFBFD; padding:0 12px 14px; }
+  .history-table { width:100%; border-collapse:collapse; margin-top:6px; }
+  .history-table th { text-align:left; font-size:10.5px; color:var(--grey); padding:5px 8px; border-bottom:1px solid var(--border); }
+  .history-table td { padding:5px 8px; font-size:12px; border-bottom:1px solid var(--border); }
+  .history-table tr:last-child td { border-bottom:none; }
+
+  .modal-bg { display:none; position:fixed; inset:0; background:rgba(1,65,108,.45); align-items:center; justify-content:center; z-index:50; padding:20px; }
+  .modal-bg.open { display:flex; }
+  .modal { background:#fff; border-radius:14px; padding:22px; width:100%; max-width:520px; max-height:90vh; overflow-y:auto; border-top:4px solid var(--green); }
+  .modal h3 { margin:0 0 14px; font-size:16px; color:var(--navy); font-weight:700; }
+  .field { margin-bottom:12px; }
+  .field label { display:block; font-size:12px; font-weight:600; margin-bottom:5px; color:var(--grey); }
+  .field input, .field select, .field textarea { width:100%; }
+  .field-row { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .modal-actions { display:flex; justify-content:flex-end; gap:8px; margin-top:18px; }
+  .hint { font-size:11px; color:var(--grey); margin-top:4px; }
+  .page-footer { text-align:center; font-size:11px; color:var(--grey-light); padding:24px 0 4px; }
+
+  @media (max-width: 800px) {
+    .cards { grid-template-columns: repeat(2,1fr); }
+    .charts-row { grid-template-columns: 1fr; }
+    .field-row { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="topbar">
+ <div class="topbar-inner">
+  <div class="brand">
+    <img class="brand-logo" alt="Qiscus" src="data:image/png;base64,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">
+    <div class="brand-divider"></div>
+    <div class="brand-text">
+      <div class="brand-title">YK Watchtower<span class="brand-beacon" title="Live monitoring"></span></div>
+      <div class="brand-caption">Yogyakarta Office &middot; Facility Monitoring</div>
+    </div>
+  </div>
+  <div style="display:flex; gap:14px; align-items:center;">
+    <div class="year-field">
+      <label class="hint" style="margin:0;">Report Year</label>
+      <select id="year-filter"></select>
+    </div>
+    <div class="year-field">
+      <label class="hint" style="margin:0;">Month</label>
+      <select id="month-filter">
+        <option value="">Full Year</option>
+        <option value="1">Jan</option>
+        <option value="2">Feb</option>
+        <option value="3">Mar</option>
+        <option value="4">Apr</option>
+        <option value="5">May</option>
+        <option value="6">Jun</option>
+        <option value="7">Jul</option>
+        <option value="8">Aug</option>
+        <option value="9">Sep</option>
+        <option value="10">Oct</option>
+        <option value="11">Nov</option>
+        <option value="12">Dec</option>
+      </select>
+    </div>
+  </div>
+ </div>
+</div>
+
+<div class="wrap">
+  <header class="page-header">
+    <div class="eyebrow">Status Board</div>
+    <h1>Facility Overview</h1>
+    <div class="sub">Keeping watch over maintenance, purchases, bills, and incidents at the Yogyakarta office — so nothing slips past unnoticed.</div>
+  </header>
+
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="dashboard">Overview</button>
+    <button class="tab-btn" data-tab="tasks">Task List</button>
+    <button class="tab-btn" data-tab="history">History</button>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div class="panel active" id="panel-dashboard">
+    <div style="display:flex; justify-content:flex-end; margin-bottom:12px;">
+      <button class="btn-ghost" id="btn-download-report">Download Report</button>
+    </div>
+    <div class="cards" id="summary-cards"></div>
+    <div class="reminder-section">
+      <h4>Needs Attention</h4>
+      <div class="reminder-cols">
+        <div class="reminder-col">
+          <div class="reminder-col-title overdue">Overdue</div>
+          <div id="reminder-overdue"></div>
+        </div>
+        <div class="reminder-col">
+          <div class="reminder-col-title thismonth">This Month</div>
+          <div id="reminder-thismonth"></div>
+        </div>
+        <div class="reminder-col">
+          <div class="reminder-col-title nextmonth">Next Month</div>
+          <div id="reminder-nextmonth"></div>
+        </div>
+      </div>
+    </div>
+    <div class="charts-row" style="grid-template-columns:1fr;">
+      <div class="chart-card" style="height:340px;">
+        <h4>Expense Timeseries &mdash; Monthly by Category (selected year)</h4>
+        <div class="chart-holder" style="height:280px;"><canvas id="chart-month"></canvas></div>
+      </div>
+    </div>
+
+    <div class="insights-row">
+      <div class="insight-card">
+        <h4>Month-over-Month Trend</h4>
+        <div class="insight-value" id="insight-trend-value">&ndash;</div>
+        <div class="insight-note" id="insight-trend-note">Not enough data yet</div>
+      </div>
+      <div class="insight-card">
+        <h4>Projected Year-End Expense</h4>
+        <div class="insight-value" id="insight-forecast-value">&ndash;</div>
+        <div class="insight-note" id="insight-forecast-note">Not enough data yet</div>
+      </div>
+    </div>
+
+    <div class="insight-section">
+      <h4>Category vs Budget (selected year)</h4>
+      <div id="insight-category-budget"></div>
+    </div>
+
+    <div class="charts-row" style="grid-template-columns:1fr 1fr;">
+      <div class="insight-section" style="margin-bottom:0;">
+        <h4>Top 5 Costliest Tasks (selected year)</h4>
+        <div class="top-tasks-list" id="insight-top-tasks"></div>
+      </div>
+      <div class="insight-section" style="margin-bottom:0;">
+        <h4>Expense Heatmap by Area (selected year)</h4>
+        <div id="insight-heatmap"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TASKS -->
+  <div class="panel" id="panel-tasks">
+    <div class="section-desc">Automatically sorted: Overdue → Due Soon → Scheduled → Done. Click "Mark Done" to log the actual date & cost — the next due date is calculated automatically based on frequency. One-off tasks (e.g. Incidents) disappear from this list once marked Done, since they won't recur — a new occurrence needs a new task. Use the Status filter below to bring completed one-off tasks back into view, or check the History tab.</div>
+    <div class="toolbar">
+      <div class="toolbar-left">
+        <select id="filter-type">
+          <option value="">All Types</option>
+          <option value="Maintenance">Maintenance</option>
+          <option value="Purchase">Purchase</option>
+          <option value="Insidental">Incident</option>
+          <option value="Tagihan">Bill</option>
+        </select>
+        <select id="filter-status">
+          <option value="">All Statuses</option>
+          <option value="overdue">Overdue</option>
+          <option value="soon">Due Soon</option>
+          <option value="upcoming">Scheduled</option>
+          <option value="done">Done</option>
+        </select>
+        <input type="text" id="filter-search" placeholder="Search name/area...">
+      </div>
+      <div class="row-actions">
+        <button class="btn-ghost" id="btn-export">Export CSV</button>
+        <button class="btn-primary" id="btn-add-task">+ Add Task</button>
+      </div>
+    </div>
+    <table class="simple">
+      <thead>
+        <tr>
+          <th>Task</th><th>Type</th><th>Frequency</th><th>Handled By</th><th>Due Date</th><th>Est. Cost</th><th>Last Completed</th><th></th>
+        </tr>
+      </thead>
+      <tbody id="tasks-tbody"></tbody>
+    </table>
+  </div>
+
+  <!-- HISTORY LOG -->
+  <div class="panel" id="panel-history">
+    <div class="section-desc">All task completion history (from the "Mark Done" button) combined into one chronological log, newest first.</div>
+    <div class="toolbar">
+      <div class="toolbar-left">
+        <select id="filter-history-type">
+          <option value="">All Types</option>
+          <option value="Maintenance">Maintenance</option>
+          <option value="Purchase">Purchase</option>
+          <option value="Insidental">Incident</option>
+          <option value="Tagihan">Bill</option>
+        </select>
+        <select id="filter-history-year">
+          <option value="">All Years</option>
+        </select>
+        <input type="text" id="filter-history-search" placeholder="Search name/area...">
+      </div>
+      <button class="btn-ghost" id="btn-export-history">Export CSV</button>
+    </div>
+    <table class="simple">
+      <thead><tr><th>Date</th><th>Task</th><th>Type</th><th>Actual Cost</th><th>Notes</th></tr></thead>
+      <tbody id="history-log-tbody"></tbody>
+    </table>
+    <div style="text-align:right; margin-top:10px; font-weight:700; color:var(--navy);" id="history-log-total"></div>
+  </div>
+
+  <div class="page-footer">Internal Tool · qiscus.com</div>
+</div>
+
+<!-- TASK MODAL -->
+<div class="modal-bg" id="task-modal-bg">
+  <div class="modal">
+    <h3 id="task-modal-title">Add Task</h3>
+    <input type="hidden" id="task-id">
+    <div class="field">
+      <label>Task Name</label>
+      <input type="text" id="task-name" placeholder="e.g. Cleaning & Checking AC">
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label>Area / Equipment</label>
+        <input type="text" id="task-area" placeholder="e.g. AC (All Room)">
+      </div>
+      <div class="field">
+        <label>Type</label>
+        <select id="task-type">
+          <option value="Maintenance">Maintenance</option>
+          <option value="Purchase">Purchase</option>
+          <option value="Insidental">Incident</option>
+          <option value="Tagihan">Bill</option>
+        </select>
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label>Frequency</label>
+        <select id="task-frequency">
+          <option value="">Once (non-recurring)</option>
+          <option value="1">Daily</option>
+          <option value="7">Weekly</option>
+          <option value="15">2x a Month</option>
+          <option value="30">Monthly</option>
+          <option value="90">Quarterly (3 months)</option>
+          <option value="180">Semi-annual (6 months)</option>
+          <option value="365">Annual</option>
+          <option value="custom">Custom (enter number of days)</option>
+        </select>
+      </div>
+      <div class="field" id="task-customdays-field" style="display:none;">
+        <label>Interval (days)</label>
+        <input type="number" id="task-customdays" min="1" placeholder="e.g. 45">
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label>Handled By</label>
+        <input type="text" id="task-pic" placeholder="Vendor / Ops / Office Boy">
+      </div>
+      <div class="field">
+        <label>Est. Cost (IDR)</label>
+        <input type="number" id="task-estcost" min="0" step="10000" placeholder="0">
+      </div>
+    </div>
+    <div class="field">
+      <label>Estimated Annual Budget (IDR)</label>
+      <input type="number" id="task-annualbudget" min="0" step="10000" placeholder="0">
+      <div class="hint">Automatically calculated from Est. Cost × estimated occurrences per year — you can edit it manually if the actual value differs (e.g. a fixed-price contract).</div>
+    </div>
+    <div class="field">
+      <label>Next Due Date</label>
+      <input type="date" id="task-nextdue">
+    </div>
+    <div class="field">
+      <label>Notes</label>
+      <textarea id="task-notes" rows="2" placeholder="optional"></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-ghost" id="task-cancel">Cancel</button>
+      <button class="btn-primary" id="task-save">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- COMPLETE MODAL -->
+<div class="modal-bg" id="complete-modal-bg">
+  <div class="modal">
+    <h3>Mark Done</h3>
+    <input type="hidden" id="complete-id">
+    <div class="field-row">
+      <div class="field">
+        <label>Completion Date</label>
+        <input type="date" id="complete-date">
+      </div>
+      <div class="field">
+        <label>Actual Cost (IDR)</label>
+        <input type="number" id="complete-cost" min="0" step="10000">
+      </div>
+    </div>
+    <div class="field">
+      <label>Notes (optional)</label>
+      <textarea id="complete-notes" rows="2"></textarea>
+    </div>
+    <div class="hint" id="complete-hint" style="margin-bottom:10px;"></div>
+    <div class="modal-actions">
+      <button class="btn-ghost" id="complete-cancel">Cancel</button>
+      <button class="btn-primary" id="complete-save">Save</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  const LS_TASKS = 'omt_tasks_v5';
+  const LS_MATRIX_OLD_V4 = 'omt_matrix_items_v4';
+  const LS_MATRIX_OLD_V3 = 'omt_matrix_items_v3';
+  const LS_INCIDENTAL_OLD = 'omt_incidental_v1';
+  const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const MONTH_NAMES_FULL = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const BRAND_CHART_COLORS = ['#01416C','#74C162','#FFD97C','#2F80ED','#FBB439','#56CCF2'];
+  const FREQ_LABELS = { '1':'Daily','7':'Weekly','15':'2x a Month','30':'Monthly','90':'Quarterly','180':'Semi-annual','365':'Annual' };
+
+  function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+  function fmtRp(n){ return 'Rp ' + Number(n||0).toLocaleString('id-ID'); }
+  function fmtDate(d){ if(!d) return '-'; const dt = new Date(d+'T00:00:00'); return dt.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}); }
+  function escapeHtml(s){ return String(s??'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+  function todayStr(){ return new Date().toISOString().slice(0,10); }
+  function freqLabel(days){ if (!days) return 'Once'; return FREQ_LABELS[String(days)] || (days + ' days'); }
+
+  // ---------- Seed ----------
+  function seedTasks(){
+    const t = todayStr();
+    function addDays(base, days){ const d = new Date(base+'T00:00:00'); d.setDate(d.getDate()+days); return d.toISOString().slice(0,10); }
+    function ab(estCost, freqDays){ return freqDays ? Math.round(estCost * (365/freqDays)) : 0; }
+    return [
+      { id: uid(), name:'Cleaning & Checking', area:'AC (All Room)', type:'Maintenance', frequencyDays:30, pic:'Vendor', estCost:1200000, annualBudget: ab(1200000,30), nextDue: addDays(t,-3), notes:'', completedOnce:false, history:[{date:addDays(t,-33),cost:1150000,notes:''}] },
+      { id: uid(), name:'Monitoring & Troubleshooting', area:'Internet & Network', type:'Maintenance', frequencyDays:90, pic:'Vendor', estCost:200000, annualBudget: ab(200000,90), nextDue: addDays(t,2), notes:'', completedOnce:false, history:[{date:addDays(t,-88),cost:180000,notes:''}] },
+      { id: uid(), name:'System Check', area:'CCTV', type:'Maintenance', frequencyDays:30, pic:'Vendor', estCost:200000, annualBudget: ab(200000,30), nextDue: addDays(t,12), notes:'', completedOnce:false, history:[] },
+      { id: uid(), name:'System Check', area:'Access Door System', type:'Maintenance', frequencyDays:180, pic:'Ops', estCost:0, annualBudget:0, nextDue: addDays(t,55), notes:'', completedOnce:false, history:[] },
+      { id: uid(), name:'Inspection', area:'Fire Extinguisher (APAR)', type:'Maintenance', frequencyDays:30, pic:'Ops', estCost:0, annualBudget:0, nextDue: addDays(t,7), notes:'', completedOnce:false, history:[] },
+      { id: uid(), name:'Daily Cleaning', area:'All Room', type:'Maintenance', frequencyDays:1, pic:'Office Boy', estCost:0, annualBudget:0, nextDue: t, notes:'', completedOnce:false, history:[] },
+      { id: uid(), name:'General Cleaning', area:'All Room', type:'Maintenance', frequencyDays:180, pic:'Vendor', estCost:6000000, annualBudget: ab(6000000,180), nextDue: addDays(t,140), notes:'', completedOnce:false, history:[] },
+      { id: uid(), name:'Restocking', area:'Pantry Supplies', type:'Purchase', frequencyDays:15, pic:'Ops/Office Boy', estCost:750000, annualBudget: ab(750000,15), nextDue: t, notes:'', completedOnce:false, history:[{date:addDays(t,-7),cost:720000,notes:''},{date:addDays(t,-22),cost:300000,notes:''}] },
+      { id: uid(), name:'Restocking', area:'Stationery Supplies', type:'Purchase', frequencyDays:30, pic:'Ops', estCost:500000, annualBudget: ab(500000,30), nextDue: addDays(t,17), notes:'', completedOnce:false, history:[] },
+      { id: uid(), name:'Restocking (as needed)', area:'First Aid Kit', type:'Purchase', frequencyDays:30, pic:'Ops', estCost:500000, annualBudget: ab(500000,30), nextDue: addDays(t,24), notes:'', completedOnce:false, history:[] },
+      { id: uid(), name:'Emergency lift repair (breakdown)', area:'Lift', type:'Insidental', frequencyDays:null, pic:'CV Lift Jaya', estCost:2500000, annualBudget:0, nextDue:'', notes:'', completedOnce:true, history:[{date:addDays(t,-7),cost:2500000,notes:'Sudden breakdown'}] },
+      { id: uid(), name:'Pay Internet Bill', area:'Internet & Network', type:'Tagihan', frequencyDays:30, pic:'Finance/Ops', estCost:1500000, annualBudget: ab(1500000,30), nextDue: addDays(t,5), notes:'', completedOnce:false, history:[{date:addDays(t,-25),cost:1500000,notes:''}] },
+      { id: uid(), name:'Pay Electricity Bill', area:'Electricity (PLN)', type:'Tagihan', frequencyDays:30, pic:'Finance/Ops', estCost:3500000, annualBudget: ab(3500000,30), nextDue: addDays(t,9), notes:'', completedOnce:false, history:[{date:addDays(t,-21),cost:3350000,notes:''}] }
+    ];
+  }
+
+  // ---------- Migration from older versions ----------
+  function migrateToUnified(){
+    try {
+      const FREQ_DAYS_MAP = { 'Daily':1, 'Weekly':7, 'Monthly':30, 'Monthly (as needed)':30, 'Quarterly':90, 'Per Semester':180, 'Twice a Year':180, 'Annual':365 };
+      const result = [];
+      const oldMatrixRaw = localStorage.getItem(LS_MATRIX_OLD_V4) || localStorage.getItem(LS_MATRIX_OLD_V3);
+      if (oldMatrixRaw) {
+        const oldItems = JSON.parse(oldMatrixRaw);
+        (oldItems||[]).forEach(it => {
+          const history = [];
+          let earliestPending = null;
+          Object.keys(it.monthData||{}).forEach(mKey => {
+            const raw = it.monthData[mKey];
+            const entries = Array.isArray(raw) ? raw : (raw ? [raw] : []);
+            entries.forEach(e => {
+              if (e && e.date) {
+                if (e.done) history.push({ date: e.date, cost: Number(e.expense||0), notes:'' });
+                else if (!earliestPending || e.date < earliestPending) earliestPending = e.date;
+              }
+            });
+          });
+          history.sort((a,b)=> a.date < b.date ? -1 : 1);
+          const freqDays = FREQ_DAYS_MAP[it.frequency] || null;
+          let nextDue = earliestPending || '';
+          if (!nextDue && freqDays && history.length) {
+            const last = new Date(history[history.length-1].date+'T00:00:00');
+            last.setDate(last.getDate()+freqDays);
+            nextDue = last.toISOString().slice(0,10);
+          }
+          const estCostM = Number(it.estCost||0);
+          const annualBudgetM = it.annualCost ? Number(it.annualCost) : (freqDays ? Math.round(estCostM * (365/freqDays)) : 0);
+          result.push({ id: it.id || uid(), name: it.activity, area: it.area, type: it.type || 'Maintenance', frequencyDays: freqDays, pic: it.pic||'', estCost: estCostM, annualBudget: annualBudgetM, nextDue, notes:'', completedOnce:false, history });
+        });
+      }
+      const oldIncRaw = localStorage.getItem(LS_INCIDENTAL_OLD);
+      if (oldIncRaw) {
+        const oldInc = JSON.parse(oldIncRaw);
+        (oldInc||[]).forEach(r => {
+          result.push({ id: r.id || uid(), name: r.desc, area: r.area||'', type:'Insidental', frequencyDays:null, pic: r.pic||'', estCost: Number(r.cost||0), nextDue: r.status==='Selesai' ? '' : (r.date||''), notes: r.notes||'', completedOnce: r.status==='Selesai', history: r.date ? [{date:r.date, cost:Number(r.cost||0), notes:r.notes||''}] : [] });
+        });
+      }
+      return result.length ? result : null;
+    } catch(e){ return null; }
+  }
+
+  function loadTasks(){
+    try {
+      const v = JSON.parse(localStorage.getItem(LS_TASKS));
+      if (v && v.length) return v;
+      const migrated = migrateToUnified();
+      if (migrated) { saveTasks(migrated); return migrated; }
+      const s = seedTasks(); saveTasks(s); return s;
+    } catch(e){
+      const migrated = migrateToUnified();
+      if (migrated) { saveTasks(migrated); return migrated; }
+      const s = seedTasks(); saveTasks(s); return s;
+    }
+  }
+  function saveTasks(v){ localStorage.setItem(LS_TASKS, JSON.stringify(v)); }
+  let tasks = loadTasks();
+
+  // ---------- Status ----------
+  function computeStatus(it){
+    const today = todayStr();
+    if (!it.frequencyDays) {
+      if (it.completedOnce) return { key:'done', label:'Done', prio:3 };
+      if (!it.nextDue) return { key:'upcoming', label:'Not scheduled', prio:2 };
+      if (it.nextDue < today) return { key:'overdue', label:'Overdue', prio:0 };
+      const diff = Math.round((new Date(it.nextDue+'T00:00:00') - new Date(today+'T00:00:00'))/86400000);
+      if (diff <= 7) return { key:'soon', label:`Due soon (${diff} days)`, prio:1 };
+      return { key:'upcoming', label:'Scheduled', prio:2 };
+    }
+    if (!it.nextDue) return { key:'upcoming', label:'Not scheduled', prio:2 };
+    if (it.nextDue < today) return { key:'overdue', label:'Overdue', prio:0 };
+    const diff = Math.round((new Date(it.nextDue+'T00:00:00') - new Date(today+'T00:00:00'))/86400000);
+    if (diff <= 7) return { key:'soon', label: diff===0 ? 'Today' : `Due soon (${diff} days)`, prio:1 };
+    return { key:'upcoming', label:'Scheduled', prio:2 };
+  }
+
+  // ---------- Year filter ----------
+  function populateYearFilter(){
+    const years = new Set([new Date().getFullYear()]);
+    tasks.forEach(it => { (it.history||[]).forEach(h => { if (h.date) years.add(Number(h.date.slice(0,4))); }); if (it.nextDue) years.add(Number(it.nextDue.slice(0,4))); });
+    const sel = document.getElementById('year-filter');
+    const sorted = Array.from(years).sort((a,b)=>b-a);
+    const prevVal = sel.value;
+    sel.innerHTML = sorted.map(y => `<option value="${y}">${y}</option>`).join('');
+    sel.value = prevVal && sorted.includes(Number(prevVal)) ? prevVal : String(new Date().getFullYear());
+  }
+
+  // ---------- Tabs ----------
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+      document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('panel-'+btn.dataset.tab).classList.add('active');
+      if (btn.dataset.tab === 'dashboard') renderDashboard();
+      if (btn.dataset.tab === 'history') renderHistoryLog();
+    });
+  });
+  document.getElementById('year-filter').addEventListener('change', renderDashboard);
+
+  // ---------- Render Task List ----------
+  let expandedId = null;
+  function renderTasks(){
+    const typeFilter = document.getElementById('filter-type').value;
+    const statusFilter = document.getElementById('filter-status').value;
+    const search = document.getElementById('filter-search').value.trim().toLowerCase();
+    let rows = tasks.map(it => ({ it, status: computeStatus(it) }));
+    if (typeFilter) rows = rows.filter(r => r.it.type === typeFilter);
+    if (statusFilter) {
+      rows = rows.filter(r => r.status.key === statusFilter);
+    } else {
+      // Default view: hide completed one-off/incident tasks — they don't recur,
+      // so once done they belong in History only. A new occurrence needs a new task.
+      rows = rows.filter(r => !(r.status.key === 'done' && !r.it.frequencyDays));
+    }
+    if (search) rows = rows.filter(r => (r.it.name+' '+(r.it.area||'')).toLowerCase().includes(search));
+    rows.sort((a,b) => {
+      if (a.status.prio !== b.status.prio) return a.status.prio - b.status.prio;
+      const ad = a.it.nextDue || '9999-99-99', bd = b.it.nextDue || '9999-99-99';
+      return ad < bd ? -1 : ad > bd ? 1 : 0;
+    });
+
+    const tbody = document.getElementById('tasks-tbody');
+    if (!rows.length) {
+      tbody.innerHTML = '<tr class="empty-row"><td colspan="8">No tasks match the current filter.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = rows.map(({it, status}) => {
+      const pillClass = it.type === 'Purchase' ? 'purchase' : (it.type === 'Insidental' ? 'insidental' : (it.type === 'Tagihan' ? 'tagihan' : 'maintenance'));
+      const pillLabel = it.type === 'Insidental' ? 'Incident' : (it.type === 'Tagihan' ? 'Bill' : it.type);
+      const lastHist = (it.history && it.history.length) ? it.history[it.history.length-1] : null;
+      const hasMultiHistory = it.history && it.history.length > 0;
+      let html = `<tr>
+        <td><div class="task-name">${escapeHtml(it.name)}</div>${it.area?`<div class="task-area">${escapeHtml(it.area)}</div>`:''}</td>
+        <td><span class="type-pill ${pillClass}">${escapeHtml(pillLabel)}</span></td>
+        <td>${freqLabel(it.frequencyDays)}</td>
+        <td>${escapeHtml(it.pic||'-')}</td>
+        <td>
+          <div>${it.nextDue ? fmtDate(it.nextDue) : '-'}</div>
+          <span class="badge ${status.key}">${status.label}</span>
+        </td>
+        <td>${fmtRp(it.estCost)}</td>
+        <td>${lastHist ? `<div>${fmtDate(lastHist.date)}</div><div class="muted">${fmtRp(lastHist.cost)}</div>` : '<span class="muted">None yet</span>'}</td>
+        <td>
+          <div class="row-actions">
+            <button class="btn-primary btn-sm" onclick="OMT.openComplete('${it.id}')">Done</button>
+            <button class="btn-ghost btn-sm" onclick="OMT.editTask('${it.id}')">Edit</button>
+            ${hasMultiHistory ? `<button class="btn-ghost btn-sm" onclick="OMT.toggleHistory('${it.id}')">History</button>` : ''}
+            <button class="btn-danger btn-sm" onclick="OMT.deleteTask('${it.id}')">Delete</button>
+          </div>
+        </td>
+      </tr>`;
+      if (expandedId === it.id && hasMultiHistory) {
+        html += `<tr class="history-row"><td colspan="8">
+          <table class="history-table">
+            <thead><tr><th>Date</th><th>Actual Cost</th><th>Notes</th></tr></thead>
+            <tbody>${it.history.slice().sort((a,b)=> a.date<b.date?1:-1).map(h => `<tr><td>${fmtDate(h.date)}</td><td>${fmtRp(h.cost)}</td><td>${escapeHtml(h.notes||'-')}</td></tr>`).join('')}</tbody>
+          </table>
+        </td></tr>`;
+      }
+      return html;
+    }).join('');
+  }
+  document.getElementById('filter-type').addEventListener('change', renderTasks);
+  document.getElementById('filter-status').addEventListener('change', renderTasks);
+  document.getElementById('filter-search').addEventListener('input', renderTasks);
+
+  // ---------- Task Modal ----------
+  const taskModalBg = document.getElementById('task-modal-bg');
+  document.getElementById('btn-add-task').addEventListener('click', () => openTaskModal());
+  document.getElementById('task-cancel').addEventListener('click', () => taskModalBg.classList.remove('open'));
+  function currentFrequencyDaysFromForm(){
+    const freqVal = document.getElementById('task-frequency').value;
+    if (freqVal === 'custom') return Number(document.getElementById('task-customdays').value || 0) || null;
+    return freqVal ? Number(freqVal) : null;
+  }
+  function suggestAnnualBudget(){
+    const est = Number(document.getElementById('task-estcost').value || 0);
+    const days = currentFrequencyDaysFromForm();
+    const suggestion = days ? Math.round(est * (365/days)) : 0;
+    document.getElementById('task-annualbudget').value = suggestion || '';
+  }
+  document.getElementById('task-frequency').addEventListener('change', (e) => {
+    document.getElementById('task-customdays-field').style.display = e.target.value === 'custom' ? 'block' : 'none';
+    suggestAnnualBudget();
+  });
+  document.getElementById('task-customdays').addEventListener('input', suggestAnnualBudget);
+  document.getElementById('task-estcost').addEventListener('input', suggestAnnualBudget);
+
+  function openTaskModal(item){
+    document.getElementById('task-modal-title').textContent = item ? 'Edit Task' : 'Add Task';
+    document.getElementById('task-id').value = item ? item.id : '';
+    document.getElementById('task-name').value = item ? item.name : '';
+    document.getElementById('task-area').value = item ? (item.area||'') : '';
+    document.getElementById('task-type').value = item ? item.type : 'Maintenance';
+    const freqSel = document.getElementById('task-frequency');
+    const knownDays = ['1','7','15','30','90','180','365'];
+    if (item && item.frequencyDays && knownDays.includes(String(item.frequencyDays))) {
+      freqSel.value = String(item.frequencyDays);
+      document.getElementById('task-customdays-field').style.display = 'none';
+    } else if (item && item.frequencyDays) {
+      freqSel.value = 'custom';
+      document.getElementById('task-customdays-field').style.display = 'block';
+      document.getElementById('task-customdays').value = item.frequencyDays;
+    } else {
+      freqSel.value = '';
+      document.getElementById('task-customdays-field').style.display = 'none';
+      document.getElementById('task-customdays').value = '';
+    }
+    document.getElementById('task-pic').value = item ? (item.pic||'') : '';
+    document.getElementById('task-estcost').value = item ? item.estCost : '';
+    document.getElementById('task-annualbudget').value = item && item.annualBudget ? item.annualBudget : '';
+    document.getElementById('task-nextdue').value = item ? (item.nextDue||'') : todayStr();
+    document.getElementById('task-notes').value = item ? (item.notes||'') : '';
+    if (!item) suggestAnnualBudget();
+    taskModalBg.classList.add('open');
+  }
+
+  document.getElementById('task-save').addEventListener('click', () => {
+    const id = document.getElementById('task-id').value;
+    const name = document.getElementById('task-name').value.trim();
+    if (!name) { alert('Task name is required'); return; }
+    const freqVal = document.getElementById('task-frequency').value;
+    let frequencyDays = null;
+    if (freqVal === 'custom') frequencyDays = Number(document.getElementById('task-customdays').value || 0) || null;
+    else if (freqVal) frequencyDays = Number(freqVal);
+    const existing = id ? tasks.find(t => t.id === id) : null;
+    const data = {
+      id: id || uid(),
+      name,
+      area: document.getElementById('task-area').value.trim(),
+      type: document.getElementById('task-type').value,
+      frequencyDays,
+      pic: document.getElementById('task-pic').value.trim(),
+      estCost: Number(document.getElementById('task-estcost').value || 0),
+      annualBudget: Number(document.getElementById('task-annualbudget').value || 0),
+      nextDue: document.getElementById('task-nextdue').value,
+      notes: document.getElementById('task-notes').value.trim(),
+      completedOnce: existing ? existing.completedOnce : false,
+      history: existing ? existing.history : []
+    };
+    if (id) { tasks = tasks.map(t => t.id === id ? data : t); } else { tasks.push(data); }
+    saveTasks(tasks);
+    taskModalBg.classList.remove('open');
+    populateYearFilter();
+    populateHistoryYearFilter();
+    renderTasks();
+  });
+
+  // ---------- Complete Modal ----------
+  const completeModalBg = document.getElementById('complete-modal-bg');
+  document.getElementById('complete-cancel').addEventListener('click', () => completeModalBg.classList.remove('open'));
+  document.getElementById('complete-save').addEventListener('click', () => {
+    const id = document.getElementById('complete-id').value;
+    const it = tasks.find(t => t.id === id);
+    if (!it) return;
+    const date = document.getElementById('complete-date').value || todayStr();
+    const cost = Number(document.getElementById('complete-cost').value || 0);
+    const notes = document.getElementById('complete-notes').value.trim();
+    it.history = it.history || [];
+    it.history.push({ date, cost, notes });
+    if (it.frequencyDays) {
+      const next = new Date(date+'T00:00:00');
+      next.setDate(next.getDate() + it.frequencyDays);
+      it.nextDue = next.toISOString().slice(0,10);
+    } else {
+      it.completedOnce = true;
+      it.nextDue = '';
+    }
+    saveTasks(tasks);
+    completeModalBg.classList.remove('open');
+    populateYearFilter();
+    populateHistoryYearFilter();
+    renderTasks();
+    renderDashboard();
+    renderHistoryLog();
+  });
+
+  // ---------- Global actions ----------
+  window.OMT = {
+    editTask(id){ openTaskModal(tasks.find(t=>t.id===id)); },
+    deleteTask(id){ if(confirm('Delete this task along with its history?')){ tasks = tasks.filter(t=>t.id!==id); saveTasks(tasks); populateYearFilter(); populateHistoryYearFilter(); renderTasks(); renderHistoryLog(); } },
+    toggleHistory(id){ expandedId = expandedId === id ? null : id; renderTasks(); },
+    openComplete(id){
+      const it = tasks.find(t=>t.id===id);
+      if (!it) return;
+      document.getElementById('complete-id').value = id;
+      document.getElementById('complete-date').value = todayStr();
+      document.getElementById('complete-cost').value = it.estCost || '';
+      document.getElementById('complete-notes').value = '';
+      document.getElementById('complete-hint').textContent = it.frequencyDays ? `The next due date will be calculated automatically (${freqLabel(it.frequencyDays).toLowerCase()}) from this date.` : 'This is a one-time task; once saved it will be marked as Done.';
+      completeModalBg.classList.add('open');
+    }
+  };
+
+  // ---------- CSV Export ----------
+  function csvCell(v){ const s = String(v??''); return '"' + s.replace(/"/g,'""') + '"'; }
+  function downloadCSV(filename, rows){
+    const csv = rows.map(r => r.map(csvCell).join(',')).join('\r\n');
+    const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = filename;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+  document.getElementById('btn-export').addEventListener('click', () => {
+    const rows = [['Name','Area','Type','Frequency','Handled By','Est Cost (IDR)','Next Due Date','Completion Date','Actual Cost (IDR)','History Notes']];
+    tasks.forEach(it => {
+      if (!it.history || !it.history.length) {
+        rows.push([it.name, it.area, it.type, freqLabel(it.frequencyDays), it.pic, it.estCost, it.nextDue||'', '', '', '']);
+      } else {
+        it.history.forEach(h => rows.push([it.name, it.area, it.type, freqLabel(it.frequencyDays), it.pic, it.estCost, it.nextDue||'', h.date, h.cost, h.notes||'']));
+      }
+    });
+    downloadCSV('office-maintenance-tracker.csv', rows);
+  });
+
+  // ---------- History Log ----------
+  function buildHistoryRecords(){
+    const records = [];
+    tasks.forEach(it => {
+      (it.history||[]).forEach(h => {
+        records.push({ date: h.date, name: it.name, area: it.area, type: it.type, cost: Number(h.cost||0), notes: h.notes||'', taskId: it.id });
+      });
+    });
+    return records;
+  }
+  function populateHistoryYearFilter(){
+    const years = new Set();
+    tasks.forEach(it => (it.history||[]).forEach(h => { if (h.date) years.add(Number(h.date.slice(0,4))); }));
+    const sel = document.getElementById('filter-history-year');
+    const sorted = Array.from(years).sort((a,b)=>b-a);
+    const prevVal = sel.value;
+    sel.innerHTML = '<option value="">All Years</option>' + sorted.map(y => `<option value="${y}">${y}</option>`).join('');
+    sel.value = sorted.includes(Number(prevVal)) ? prevVal : '';
+  }
+  function filteredHistoryRecords(){
+    const typeFilter = document.getElementById('filter-history-type').value;
+    const yearFilter = document.getElementById('filter-history-year').value;
+    const search = document.getElementById('filter-history-search').value.trim().toLowerCase();
+    let records = buildHistoryRecords();
+    if (typeFilter) records = records.filter(r => r.type === typeFilter);
+    if (yearFilter) records = records.filter(r => r.date && r.date.slice(0,4) === String(yearFilter));
+    if (search) records = records.filter(r => (r.name+' '+(r.area||'')).toLowerCase().includes(search));
+    records.sort((a,b) => a.date < b.date ? 1 : -1);
+    return records;
+  }
+  function renderHistoryLog(){
+    const records = filteredHistoryRecords();
+    const tbody = document.getElementById('history-log-tbody');
+    if (!records.length) {
+      tbody.innerHTML = '<tr class="empty-row"><td colspan="5">No history matches the current filter.</td></tr>';
+    } else {
+      tbody.innerHTML = records.map(r => {
+        const pillClass = r.type === 'Purchase' ? 'purchase' : (r.type === 'Insidental' ? 'insidental' : (r.type === 'Tagihan' ? 'tagihan' : 'maintenance'));
+        const pillLabel = r.type === 'Insidental' ? 'Incident' : (r.type === 'Tagihan' ? 'Bill' : r.type);
+        return `<tr>
+          <td>${fmtDate(r.date)}</td>
+          <td><div class="task-name">${escapeHtml(r.name)}</div>${r.area?`<div class="task-area">${escapeHtml(r.area)}</div>`:''}</td>
+          <td><span class="type-pill ${pillClass}">${escapeHtml(pillLabel)}</span></td>
+          <td>${fmtRp(r.cost)}</td>
+          <td>${escapeHtml(r.notes||'-')}</td>
+        </tr>`;
+      }).join('');
+    }
+    const total = records.reduce((s,r)=>s+r.cost,0);
+    document.getElementById('history-log-total').textContent = `Total (filtered): ${fmtRp(total)} · ${records.length} entries`;
+  }
+  document.getElementById('filter-history-type').addEventListener('change', renderHistoryLog);
+  document.getElementById('filter-history-year').addEventListener('change', renderHistoryLog);
+  document.getElementById('filter-history-search').addEventListener('input', renderHistoryLog);
+  document.getElementById('btn-export-history').addEventListener('click', () => {
+    const records = filteredHistoryRecords();
+    const rows = [['Date','Task Name','Area','Type','Actual Cost (IDR)','Notes']];
+    records.forEach(r => rows.push([r.date, r.name, r.area, r.type, r.cost, r.notes]));
+    downloadCSV('office-maintenance-history.csv', rows);
+  });
+
+  // ---------- Reminder columns ----------
+  function reminderItemHtml(it, status){
+    return `<div class="reminder-item">
+      <div class="reminder-item-info">
+        <div class="reminder-item-name">${escapeHtml(it.name)}${it.area?` <span class="muted">· ${escapeHtml(it.area)}</span>`:''}</div>
+        <div class="reminder-item-meta">${it.nextDue ? fmtDate(it.nextDue) : '-'} · ${escapeHtml(it.pic||'-')}</div>
+      </div>
+      <button class="btn-primary btn-sm" onclick="OMT.openComplete('${it.id}')">Done</button>
+    </div>`;
+  }
+  function renderReminderColumns(){
+    const now = new Date();
+    const curY = now.getFullYear(), curM = now.getMonth();
+    const curYM = `${curY}-${String(curM+1).padStart(2,'0')}`;
+    const nextDate = new Date(curY, curM+1, 1);
+    const nextYM = `${nextDate.getFullYear()}-${String(nextDate.getMonth()+1).padStart(2,'0')}`;
+
+    const overdue = [], thisMonth = [], nextMonth = [];
+    tasks.forEach(it => {
+      const status = computeStatus(it);
+      if (status.key === 'done' || !it.nextDue) return;
+      if (status.key === 'overdue') { overdue.push(it); return; }
+      const ym = it.nextDue.slice(0,7);
+      if (ym === curYM) thisMonth.push(it);
+      else if (ym === nextYM) nextMonth.push(it);
+    });
+    [overdue, thisMonth, nextMonth].forEach(arr => arr.sort((a,b)=> (a.nextDue||'') < (b.nextDue||'') ? -1 : 1));
+
+    const renderCol = (elId, arr) => {
+      const el = document.getElementById(elId);
+      el.innerHTML = arr.length ? arr.map(it => reminderItemHtml(it, computeStatus(it))).join('') : '<div class="reminder-empty">None</div>';
+    };
+    renderCol('reminder-overdue', overdue);
+    renderCol('reminder-thismonth', thisMonth);
+    renderCol('reminder-nextmonth', nextMonth);
+  }
+
+  // ---------- Report Export ----------
+  const categoryDefs = [
+    { key:'Maintenance', label:'Maintenance', color:'#2F80ED', bg:'#EAF3FE' },
+    { key:'Purchase',    label:'Purchase',    color:'#5CA24C', bg:'#EAFBF0' },
+    { key:'Insidental',  label:'Incident',    color:'#01416C', bg:'#FFF1DE' },
+    { key:'Tagihan',     label:'Bill',        color:'#01416C', bg:'#FFF8E6' }
+  ];
+  function catLabel(key){ const c = categoryDefs.find(x => x.key === key); return c ? c.label : key; }
+  function catPill(stat){ return `<span class="cat-pill" style="background:${stat.bg};color:${stat.color};">${stat.label}</span>`; }
+  function buildBudgetBar(actual, budget){
+    if (!budget) return `<div class="bar-label">No budget set for comparison</div>`;
+    const pct = Math.round((actual/budget)*100);
+    const widthPct = Math.min(pct, 100);
+    const color = pct > 100 ? '#01416C' : (pct > 85 ? '#FBB439' : '#5CA24C');
+    return `<div class="bar-track"><div class="bar-fill" style="width:${widthPct}%;background:${color};"></div></div><div class="bar-label">${pct}% of budget used</div>`;
+  }
+
+  const REPORT_STYLE = `
+  @page{ size:A4; margin:0; }
+  :root{ --navy:#01416C; --navy-soft:#EAF3FE; --green:#74C162; --green-dark:#5CA24C; --orange:#FBB439; --grey:#828282; --grey-light:#BDBDBD; --border:#E5E9ED; --text:#2B2B2B; }
+  *{box-sizing:border-box;}
+  html{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;color:var(--text);margin:0;padding:24px 0;background:#7c8388;}
+  .page{width:210mm;min-height:297mm;margin:0 auto;padding:16mm 15mm 18mm;background:#fff;box-shadow:0 2px 14px rgba(0,0,0,.25);}
+  .report-header{border-bottom:2px solid var(--navy);padding-bottom:14px;margin-bottom:24px;}
+  h1{color:var(--navy);font-size:20px;margin:0 0 6px;font-weight:700;letter-spacing:-0.01em;}
+  .meta{color:var(--grey);font-size:11.5px;}
+  h2{color:var(--navy);font-size:13px;font-weight:700;margin:26px 0 12px;padding-bottom:7px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:7px;text-transform:uppercase;letter-spacing:.03em;}
+  h2::before{content:'';width:14px;height:2px;border-radius:0;background:var(--green);display:inline-block;flex:none;}
+  h2:first-of-type{margin-top:20px;}
+  .cards{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:4px;}
+  .card{border:1px solid var(--border);border-top:3px solid var(--navy);border-radius:8px;padding:10px 11px;background:#fff;min-width:0;}
+  .card .label{font-size:9.5px;color:var(--grey);margin-bottom:5px;font-weight:600;text-transform:uppercase;letter-spacing:.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .card .value{font-size:14.5px;font-weight:700;color:var(--navy);line-height:1.25;font-variant-numeric:tabular-nums;word-break:break-word;}
+  .card .sub{font-size:9.5px;color:var(--grey);margin-top:4px;}
+  .card.warn{border-top-color:var(--orange);} .card.warn .value{color:var(--orange);}
+  .card.good{border-top-color:var(--green);} .card.good .value{color:var(--green);}
+  table{width:100%;border-collapse:collapse;margin-bottom:4px;table-layout:fixed;}
+  th{text-align:left;font-size:9.5px;text-transform:uppercase;letter-spacing:.02em;color:var(--grey);padding:7px 9px;background:#FAFBFD;border-bottom:1px solid var(--border);font-weight:600;}
+  td{padding:7px 9px;font-size:11px;border-bottom:1px solid var(--border);color:var(--text);word-wrap:break-word;overflow-wrap:break-word;line-height:1.4;}
+  tr:last-child td{border-bottom:none;}
+  .section-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+  .section-grid table{table-layout:auto;}
+  .section-grid strong{font-size:11px;color:var(--navy);display:block;margin-bottom:6px;}
+  .footer{margin-top:32px;padding-top:14px;border-top:1px solid var(--border);font-size:9.5px;color:var(--grey-light);text-align:center;}
+  .summary-box{background:var(--navy-soft);border-radius:8px;padding:14px 16px;margin:0 0 6px;}
+  .summary-box p{margin:0 0 9px;font-size:11.5px;line-height:1.6;color:var(--text);}
+  .summary-box ul{margin:0;padding-left:16px;}
+  .summary-box li{font-size:11px;line-height:1.7;color:var(--text);}
+  .summary-box strong{color:var(--navy);}
+  .stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px;}
+  .stat-box{border:1px solid var(--border);border-radius:8px;padding:10px 11px;min-width:0;}
+  .stat-box .label{font-size:9.5px;color:var(--grey);text-transform:uppercase;letter-spacing:.02em;margin-bottom:5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .stat-box .value{font-size:14px;font-weight:700;color:var(--navy);font-variant-numeric:tabular-nums;word-break:break-word;line-height:1.25;}
+  .stat-box.variance-over .value{color:var(--navy);}
+  .stat-box.variance-under .value{color:var(--green);}
+  .bar-track{background:#E5E9ED;border-radius:999px;height:9px;overflow:hidden;margin:6px 0 4px;}
+  .bar-fill{height:100%;border-radius:999px;}
+  .bar-label{font-size:10px;color:var(--grey);}
+  .cat-pill{display:inline-block;padding:3px 9px;border-radius:999px;font-size:10.5px;font-weight:700;white-space:nowrap;}
+  .empty-note{text-align:center;color:var(--grey-light);padding:18px;font-size:11px;border:1px dashed var(--border);border-radius:8px;}
+  @media print{
+    body{background:#fff;padding:0;}
+    .page{width:auto;min-height:0;margin:0;padding:14mm 13mm;box-shadow:none;}
+    h2{break-after:avoid;page-break-after:avoid;}
+    table{break-inside:auto;}
+    tr{break-inside:avoid;page-break-inside:avoid;}
+    .summary-box,.card,.stat-box{break-inside:avoid;page-break-inside:avoid;}
+  }`;
+
+  function computeReportData(){
+    const yearSel = Number(document.getElementById('year-filter').value) || new Date().getFullYear();
+    const overdueCount = tasks.filter(it => computeStatus(it).key === 'overdue').length;
+    const soonCount = tasks.filter(it => computeStatus(it).key === 'soon').length;
+    const monthActual = new Array(12).fill(0);
+    let yearActual = 0;
+    const catTotals = {}, catTx = {};
+    categoryDefs.forEach(c => { catTotals[c.key] = 0; catTx[c.key] = 0; });
+    const incidentEntries = [];
+    tasks.forEach(it => {
+      (it.history||[]).forEach(h => {
+        if (!h.date) return;
+        const cost = Number(h.cost||0);
+        const hy = Number(h.date.slice(0,4));
+        if (hy === yearSel) {
+          yearActual += cost;
+          monthActual[Number(h.date.slice(5,7))-1] += cost;
+          catTotals[it.type] = (catTotals[it.type]||0) + cost;
+          catTx[it.type] = (catTx[it.type]||0) + 1;
+          if (it.type === 'Insidental') incidentEntries.push({ date: h.date, name: it.name, area: it.area, cost, notes: h.notes||'' });
+        }
+      });
+    });
+    incidentEntries.sort((a,b) => a.date < b.date ? 1 : -1);
+    const incidentCount = incidentEntries.length;
+    const incidentTotal = incidentEntries.reduce((s,e) => s + e.cost, 0);
+
+    const totalAnnualBudget = tasks.reduce((s,it) => s + Number(it.annualBudget||0), 0);
+    const budgetPct = totalAnnualBudget ? Math.round((yearActual/totalAnnualBudget)*100) : null;
+
+    const categoryStats = categoryDefs.map(c => ({
+      ...c,
+      taskCount: tasks.filter(t => t.type === c.key).length,
+      transactions: catTx[c.key] || 0,
+      totalActual: catTotals[c.key] || 0,
+      pct: yearActual ? Math.round(((catTotals[c.key]||0) / yearActual) * 100) : 0
+    }));
+
+    const now = new Date();
+    const curY = now.getFullYear(), curM = now.getMonth();
+    const curYM = `${curY}-${String(curM+1).padStart(2,'0')}`;
+    const nd = new Date(curY, curM+1, 1);
+    const nextYM = `${nd.getFullYear()}-${String(nd.getMonth()+1).padStart(2,'0')}`;
+    const overdueList = [], thisMonthList = [], nextMonthList = [];
+    tasks.forEach(it => {
+      const status = computeStatus(it);
+      if (status.key === 'done' || !it.nextDue) return;
+      if (status.key === 'overdue') { overdueList.push(it); return; }
+      const ym = it.nextDue.slice(0,7);
+      if (ym === curYM) thisMonthList.push(it);
+      else if (ym === nextYM) nextMonthList.push(it);
+    });
+    [overdueList, thisMonthList, nextMonthList].forEach(arr => arr.sort((a,b)=> (a.nextDue||'') < (b.nextDue||'') ? -1 : 1));
+
+    return { yearSel, overdueCount, soonCount, monthActual, yearActual, totalAnnualBudget, budgetPct, overdueList, thisMonthList, nextMonthList, categoryStats, incidentEntries, incidentCount, incidentTotal };
+  }
+
+  function reportTaskRow(it){
+    return `<tr><td>${escapeHtml(it.name)}</td><td>${escapeHtml(it.area||'-')}</td><td>${escapeHtml(it.pic||'-')}</td><td>${it.nextDue?fmtDate(it.nextDue):'-'}</td></tr>`;
+  }
+
+  function buildOverviewSummary(d){
+    let budgetStatusText;
+    if (!d.totalAnnualBudget) {
+      budgetStatusText = 'the annual budget has not been set';
+    } else if (d.yearActual > d.totalAnnualBudget) {
+      budgetStatusText = `exceeds the annual budget by ${fmtRp(d.yearActual - d.totalAnnualBudget)}`;
+    } else {
+      budgetStatusText = `remains within the annual budget, with ${fmtRp(d.totalAnnualBudget - d.yearActual)} remaining`;
+    }
+
+    const topCategory = d.categoryStats.filter(c => c.totalActual > 0).sort((a,b) => b.totalActual - a.totalActual)[0] || null;
+    const monthEntries = d.monthActual.map((v,i) => [i,v]).filter(([,v]) => v > 0).sort((a,b) => b[1]-a[1]);
+    const topMonth = monthEntries.length ? monthEntries[0] : null;
+    const attentionCount = d.overdueList.length + d.thisMonthList.length;
+
+    const narrative = `Across <strong>${d.yearSel}</strong>, the tracker recorded <strong>${tasks.length} maintenance task(s)</strong> in total, with <strong>${d.overdueCount} currently overdue</strong> and <strong>${d.soonCount} due within the next 7 days</strong>. Actual expense reached <strong>${fmtRp(d.yearActual)}</strong>${d.totalAnnualBudget ? ` against an annual budget of ${fmtRp(d.totalAnnualBudget)} (${d.budgetPct}%)` : ''}, and spending currently ${budgetStatusText}.`;
+
+    const bullets = [];
+    bullets.push(`<strong>${attentionCount} task(s)</strong> require immediate attention (overdue &amp; due this month)`);
+    if (topCategory) bullets.push(`Largest expense category: <strong>${topCategory.label}</strong> (${fmtRp(topCategory.totalActual)})`);
+    if (topMonth) bullets.push(`Highest-spending month: <strong>${MONTHS[topMonth[0]]}</strong> (${fmtRp(topMonth[1])})`);
+    bullets.push(d.incidentCount > 0
+      ? `<strong>${d.incidentCount} incident(s)</strong> recorded this year, totaling ${fmtRp(d.incidentTotal)}`
+      : `No incidents recorded in ${d.yearSel}`);
+    bullets.push(`Annual budget status: ${budgetStatusText}`);
+
+    return `<div class="summary-box"><p>${narrative}</p><ul>${bullets.map(b => `<li>${b}</li>`).join('')}</ul></div>`;
+  }
+
+  function buildOverviewReportHtml(){
+    const d = computeReportData();
+    const genDate = new Date().toLocaleString('en-GB', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
+    const actualSub = d.totalAnnualBudget ? `${d.budgetPct}% of annual budget` : 'Annual budget not set';
+    const summaryHtml = buildOverviewSummary(d);
+
+    const variance = d.totalAnnualBudget ? d.yearActual - d.totalAnnualBudget : null;
+    const varianceClass = variance == null ? '' : (variance > 0 ? 'variance-over' : 'variance-under');
+    const varianceLabel = variance == null ? 'N/A' : (variance > 0 ? `+${fmtRp(variance)}` : `-${fmtRp(Math.abs(variance))}`);
+    const monthRows = MONTHS.map((m,idx) => `<tr><td>${m}</td><td style="text-align:right">${fmtRp(d.monthActual[idx])}</td></tr>`).join('');
+    const expenseSummaryHtml = `
+      <div class="stat-row">
+        <div class="stat-box"><div class="label">Annual Budget</div><div class="value">${fmtRp(d.totalAnnualBudget)}</div></div>
+        <div class="stat-box"><div class="label">Actual Expense</div><div class="value">${fmtRp(d.yearActual)}</div></div>
+        <div class="stat-box ${varianceClass}"><div class="label">Variance</div><div class="value">${varianceLabel}</div></div>
+        <div class="stat-box"><div class="label">Budget Used</div><div class="value">${d.totalAnnualBudget ? d.budgetPct+'%' : 'N/A'}</div></div>
+      </div>
+      ${buildBudgetBar(d.yearActual, d.totalAnnualBudget)}
+      <table style="margin-top:16px;"><thead><tr><th>Month</th><th style="text-align:right">Actual Expense</th></tr></thead><tbody>${monthRows}</tbody></table>`;
+
+    const categoryRows = d.categoryStats.map(c => `<tr><td>${catPill(c)}</td><td>${c.taskCount}</td><td>${c.transactions}</td><td style="text-align:right">${fmtRp(c.totalActual)}</td><td style="text-align:right">${c.pct}%</td></tr>`).join('');
+    const categoryHtml = `<table><thead><tr><th>Category</th><th>Tasks</th><th>Entries</th><th style="text-align:right">Total Actual</th><th style="text-align:right">% of Expense</th></tr></thead><tbody>${categoryRows}</tbody></table>`;
+
+    const incidentRows = d.incidentEntries.map(e => `<tr><td>${fmtDate(e.date)}</td><td>${escapeHtml(e.name)}</td><td>${escapeHtml(e.area||'-')}</td><td style="text-align:right">${fmtRp(e.cost)}</td><td>${escapeHtml(e.notes||'-')}</td></tr>`).join('');
+    const incidentHtml = d.incidentEntries.length
+      ? `<table><thead><tr><th>Date</th><th>Incident</th><th>Area</th><th style="text-align:right">Cost</th><th>Notes</th></tr></thead><tbody>${incidentRows}</tbody></table>`
+      : `<div class="empty-note">No incidents recorded in ${d.yearSel}.</div>`;
+
+    const overdueRows = d.overdueList.length ? d.overdueList.map(reportTaskRow).join('') : '<tr><td colspan="4" style="text-align:center;color:#828282;">None</td></tr>';
+    const thisMonthRows = d.thisMonthList.length ? d.thisMonthList.map(reportTaskRow).join('') : '<tr><td colspan="4" style="text-align:center;color:#828282;">None</td></tr>';
+    const nextMonthRows = d.nextMonthList.length ? d.nextMonthList.map(reportTaskRow).join('') : '<tr><td colspan="4" style="text-align:center;color:#828282;">None</td></tr>';
+
+    return `<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><title>Office Maintenance Overview Report - ${d.yearSel}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"><style>${REPORT_STYLE}</style></head>
+<body><div class="page">
+  <div class="report-header">
+    <h1>YK Watchtower &mdash; Overview Report</h1>
+    <div class="meta">Generated ${genDate} &middot; Report year ${d.yearSel}</div>
+  </div>
+
+  <div class="cards" style="grid-template-columns:repeat(5,1fr);">
+    <div class="card"><div class="label">Total Tasks</div><div class="value">${tasks.length}</div></div>
+    <div class="card ${d.overdueCount?'warn':'good'}"><div class="label">Overdue</div><div class="value">${d.overdueCount}</div></div>
+    <div class="card ${d.soonCount?'warn':'good'}"><div class="label">Due Soon (&le;7 days)</div><div class="value">${d.soonCount}</div></div>
+    <div class="card"><div class="label">Annual Budget</div><div class="value">${fmtRp(d.totalAnnualBudget)}</div></div>
+    <div class="card"><div class="label">Actual Expense ${d.yearSel}</div><div class="value">${fmtRp(d.yearActual)}</div><div class="sub">${actualSub}</div></div>
+  </div>
+
+  <h2>Executive Summary</h2>
+  ${summaryHtml}
+
+  <h2>Expense Summary</h2>
+  ${expenseSummaryHtml}
+
+  <h2>Category Recap</h2>
+  ${categoryHtml}
+
+  <h2>Incident Highlights</h2>
+  ${incidentHtml}
+
+  <h2>Needs Attention</h2>
+  <div class="section-grid">
+    <div><strong>Overdue</strong><table><thead><tr><th>Task</th><th>Area</th><th>Handled By</th><th>Due</th></tr></thead><tbody>${overdueRows}</tbody></table></div>
+    <div><strong>This Month</strong><table><thead><tr><th>Task</th><th>Area</th><th>Handled By</th><th>Due</th></tr></thead><tbody>${thisMonthRows}</tbody></table></div>
+    <div><strong>Next Month</strong><table><thead><tr><th>Task</th><th>Area</th><th>Handled By</th><th>Due</th></tr></thead><tbody>${nextMonthRows}</tbody></table></div>
+  </div>
+
+  <div class="footer">YK Watchtower &middot; Internal Tool &middot; qiscus.com</div>
+</div></body></html>`;
+  }
+
+  function buildMonthlySummary(month, yearSel, completed, totalExpense, monthlyBudget, scheduled, categoryStatsMonth, incidentEntriesMonth){
+    let budgetStatusText;
+    if (!monthlyBudget) {
+      budgetStatusText = 'no average monthly budget has been set';
+    } else if (totalExpense > monthlyBudget) {
+      budgetStatusText = `exceeds the average monthly budget by ${fmtRp(totalExpense - monthlyBudget)}`;
+    } else {
+      budgetStatusText = `remains under the average monthly budget, saving ${fmtRp(monthlyBudget - totalExpense)}`;
+    }
+
+    const topCategory = categoryStatsMonth.filter(c => c.totalActual > 0).sort((a,b) => b.totalActual - a.totalActual)[0] || null;
+    const topItem = completed.length ? completed.reduce((max, r) => r.cost > max.cost ? r : max, completed[0]) : null;
+    const incidentCount = incidentEntriesMonth.length;
+    const incidentTotal = incidentEntriesMonth.reduce((s,e) => s + e.cost, 0);
+
+    const narrative = `In <strong>${MONTH_NAMES_FULL[month-1]} ${yearSel}</strong>, <strong>${completed.length} task(s)</strong> were completed with a total expense of <strong>${fmtRp(totalExpense)}</strong>${monthlyBudget ? ` (average monthly budget: ${fmtRp(Math.round(monthlyBudget))})` : ''}. Spending this month ${budgetStatusText}, while <strong>${scheduled.length} task(s)</strong> remain scheduled or unfinished for this month.`;
+
+    const bullets = [];
+    if (topCategory) bullets.push(`Largest expense category this month: <strong>${topCategory.label}</strong> (${fmtRp(topCategory.totalActual)})`);
+    if (topItem && topItem.cost > 0) bullets.push(`Highest single-cost task: <strong>${escapeHtml(topItem.name)}</strong> (${fmtRp(topItem.cost)})`);
+    bullets.push(incidentCount > 0
+      ? `<strong>${incidentCount} incident(s)</strong> recorded this month, totaling ${fmtRp(incidentTotal)}`
+      : 'No incidents recorded this month');
+    bullets.push(`Monthly budget status: ${budgetStatusText}`);
+    bullets.push(`<strong>${scheduled.length} task(s)</strong> still scheduled or unfinished this month`);
+
+    return `<div class="summary-box"><p>${narrative}</p><ul>${bullets.map(b => `<li>${b}</li>`).join('')}</ul></div>`;
+  }
+
+  function buildMonthlyReportHtml(yearSel, month){
+    const genDate = new Date().toLocaleString('en-GB', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
+    const ymKey = `${yearSel}-${String(month).padStart(2,'0')}`;
+
+    const completed = [];
+    tasks.forEach(it => {
+      (it.history||[]).forEach(h => {
+        if (h.date && h.date.slice(0,7) === ymKey) {
+          completed.push({ name: it.name, area: it.area, type: it.type, date: h.date, cost: Number(h.cost||0), notes: h.notes||'' });
+        }
+      });
+    });
+    completed.sort((a,b)=> a.date < b.date ? -1 : 1);
+    const totalExpense = completed.reduce((s,r)=>s+r.cost,0);
+
+    const scheduled = tasks.filter(it => it.nextDue && it.nextDue.slice(0,7) === ymKey && computeStatus(it).key !== 'done');
+    scheduled.sort((a,b)=> (a.nextDue||'') < (b.nextDue||'') ? -1 : 1);
+
+    const totalAnnualBudget = tasks.reduce((s,it) => s + Number(it.annualBudget||0), 0);
+    const monthlyBudget = totalAnnualBudget / 12;
+
+    const catTotals = {}, catTx = {};
+    categoryDefs.forEach(c => { catTotals[c.key] = 0; catTx[c.key] = 0; });
+    completed.forEach(r => { catTotals[r.type] = (catTotals[r.type]||0) + r.cost; catTx[r.type] = (catTx[r.type]||0) + 1; });
+    const categoryStatsMonth = categoryDefs.map(c => ({
+      ...c,
+      transactions: catTx[c.key] || 0,
+      totalActual: catTotals[c.key] || 0,
+      pct: totalExpense ? Math.round(((catTotals[c.key]||0) / totalExpense) * 100) : 0
+    }));
+
+    const incidentEntriesMonth = completed.filter(r => r.type === 'Insidental').map(r => ({ date:r.date, name:r.name, area:r.area, cost:r.cost, notes:r.notes }));
+    incidentEntriesMonth.sort((a,b) => a.date < b.date ? 1 : -1);
+
+    const completedRows = completed.length ? completed.map(r => `<tr><td>${fmtDate(r.date)}</td><td>${escapeHtml(r.name)}</td><td>${escapeHtml(r.area||'-')}</td><td>${catLabel(r.type)}</td><td style="text-align:right">${fmtRp(r.cost)}</td><td>${escapeHtml(r.notes||'-')}</td></tr>`).join('') : '<tr><td colspan="6" style="text-align:center;color:#828282;">No tasks completed this month</td></tr>';
+    const scheduledRows = scheduled.length ? scheduled.map(it => `<tr><td>${escapeHtml(it.name)}</td><td>${escapeHtml(it.area||'-')}</td><td>${escapeHtml(it.pic||'-')}</td><td>${fmtDate(it.nextDue)}</td></tr>`).join('') : '<tr><td colspan="4" style="text-align:center;color:#828282;">None</td></tr>';
+
+    const summaryHtml = buildMonthlySummary(month, yearSel, completed, totalExpense, monthlyBudget, scheduled, categoryStatsMonth, incidentEntriesMonth);
+
+    const variance = monthlyBudget ? totalExpense - monthlyBudget : null;
+    const varianceClass = variance == null ? '' : (variance > 0 ? 'variance-over' : 'variance-under');
+    const varianceLabel = variance == null ? 'N/A' : (variance > 0 ? `+${fmtRp(variance)}` : `-${fmtRp(Math.abs(variance))}`);
+    const expenseSummaryHtml = `
+      <div class="stat-row">
+        <div class="stat-box"><div class="label">Avg Monthly Budget</div><div class="value">${fmtRp(Math.round(monthlyBudget))}</div></div>
+        <div class="stat-box"><div class="label">Actual Expense</div><div class="value">${fmtRp(totalExpense)}</div></div>
+        <div class="stat-box ${varianceClass}"><div class="label">Variance</div><div class="value">${varianceLabel}</div></div>
+        <div class="stat-box"><div class="label">Tasks Completed</div><div class="value">${completed.length}</div></div>
+      </div>
+      ${buildBudgetBar(totalExpense, monthlyBudget)}`;
+
+    const categoryRows = categoryStatsMonth.map(c => `<tr><td>${catPill(c)}</td><td>${c.transactions}</td><td style="text-align:right">${fmtRp(c.totalActual)}</td><td style="text-align:right">${c.pct}%</td></tr>`).join('');
+    const categoryHtml = categoryStatsMonth.some(c => c.transactions > 0)
+      ? `<table><thead><tr><th>Category</th><th>Entries</th><th style="text-align:right">Total Actual</th><th style="text-align:right">% of Expense</th></tr></thead><tbody>${categoryRows}</tbody></table>`
+      : `<div class="empty-note">No completed tasks recorded this month.</div>`;
+
+    const incidentRowsMonth = incidentEntriesMonth.map(e => `<tr><td>${fmtDate(e.date)}</td><td>${escapeHtml(e.name)}</td><td>${escapeHtml(e.area||'-')}</td><td style="text-align:right">${fmtRp(e.cost)}</td><td>${escapeHtml(e.notes||'-')}</td></tr>`).join('');
+    const incidentHtmlMonth = incidentEntriesMonth.length
+      ? `<table><thead><tr><th>Date</th><th>Incident</th><th>Area</th><th style="text-align:right">Cost</th><th>Notes</th></tr></thead><tbody>${incidentRowsMonth}</tbody></table>`
+      : `<div class="empty-note">No incidents recorded this month.</div>`;
+
+    return `<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><title>Office Maintenance Monthly Report - ${MONTH_NAMES_FULL[month-1]} ${yearSel}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"><style>${REPORT_STYLE}</style></head>
+<body><div class="page">
+  <div class="report-header">
+    <h1>YK Watchtower &mdash; Monthly Report</h1>
+    <div class="meta">${MONTH_NAMES_FULL[month-1]} ${yearSel} &middot; Generated ${genDate}</div>
+  </div>
+
+  <div class="cards" style="grid-template-columns:repeat(3,1fr);">
+    <div class="card"><div class="label">Tasks Completed</div><div class="value">${completed.length}</div></div>
+    <div class="card"><div class="label">Actual Expense</div><div class="value">${fmtRp(totalExpense)}</div></div>
+    <div class="card"><div class="label">Avg Monthly Budget</div><div class="value">${fmtRp(Math.round(monthlyBudget))}</div></div>
+  </div>
+
+  <h2>Executive Summary</h2>
+  ${summaryHtml}
+
+  <h2>Expense Summary</h2>
+  ${expenseSummaryHtml}
+
+  <h2>Category Recap</h2>
+  ${categoryHtml}
+
+  <h2>Incident Highlights</h2>
+  ${incidentHtmlMonth}
+
+  <h2>Completed This Month</h2>
+  <table><thead><tr><th>Date</th><th>Task</th><th>Area</th><th>Type</th><th style="text-align:right">Cost</th><th>Notes</th></tr></thead><tbody>${completedRows}</tbody></table>
+
+  <h2>Scheduled / Still Due This Month</h2>
+  <table><thead><tr><th>Task</th><th>Area</th><th>Handled By</th><th>Due Date</th></tr></thead><tbody>${scheduledRows}</tbody></table>
+
+  <div class="footer">YK Watchtower &middot; Internal Tool &middot; qiscus.com</div>
+</div></body></html>`;
+  }
+
+
+  document.getElementById('btn-download-report').addEventListener('click', () => {
+    const monthVal = document.getElementById('month-filter').value;
+    const yearSel = Number(document.getElementById('year-filter').value) || new Date().getFullYear();
+    let html, filename;
+    if (monthVal) {
+      html = buildMonthlyReportHtml(yearSel, Number(monthVal));
+      filename = `office-maintenance-monthly-${yearSel}-${String(monthVal).padStart(2,'0')}.html`;
+    } else {
+      html = buildOverviewReportHtml();
+      filename = `office-maintenance-overview-${todayStr()}.html`;
+    }
+    const blob = new Blob([html], { type: 'text/html;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = filename;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  });
+
+  // ---------- Dashboard ----------
+  let chartMonth;
+  function renderDashboard(){
+    const yearSel = Number(document.getElementById('year-filter').value) || new Date().getFullYear();
+    const overdueCount = tasks.filter(it => computeStatus(it).key === 'overdue').length;
+    const soonCount = tasks.filter(it => computeStatus(it).key === 'soon').length;
+
+    const monthActual = new Array(12).fill(0);
+    let yearActual = 0;
+    const typeActual = { Maintenance:0, Purchase:0, Insidental:0, Tagihan:0 };
+    const monthByType = { Maintenance:new Array(12).fill(0), Purchase:new Array(12).fill(0), Insidental:new Array(12).fill(0), Tagihan:new Array(12).fill(0) };
+    tasks.forEach(it => {
+      (it.history||[]).forEach(h => {
+        if (!h.date) return;
+        const cost = Number(h.cost||0);
+        typeActual[it.type] = (typeActual[it.type]||0) + cost;
+        const hy = Number(h.date.slice(0,4));
+        if (hy === yearSel) {
+          yearActual += cost;
+          const mIdx = Number(h.date.slice(5,7))-1;
+          monthActual[mIdx] += cost;
+          if (monthByType[it.type]) monthByType[it.type][mIdx] += cost;
+        }
+      });
+    });
+
+    const totalAnnualBudget = tasks.reduce((s,it) => s + Number(it.annualBudget||0), 0);
+    const budgetPct = totalAnnualBudget ? Math.round((yearActual/totalAnnualBudget)*100) : null;
+    const overBudget = totalAnnualBudget > 0 && yearActual > totalAnnualBudget;
+    const actualCardClass = totalAnnualBudget ? (overBudget ? 'bad' : 'good') : '';
+    const actualSub = totalAnnualBudget ? `${budgetPct}% of annual budget` : 'Annual budget not set';
+
+    document.getElementById('summary-cards').innerHTML = `
+      <div class="card"><div class="label">Total Tasks</div><div class="value">${tasks.length}</div></div>
+      <div class="card ${overdueCount?'bad':'good'}"><div class="label">Overdue</div><div class="value">${overdueCount}</div></div>
+      <div class="card ${soonCount?'warn':'good'}"><div class="label">Due Soon (≤7 days)</div><div class="value">${soonCount}</div></div>
+      <div class="card"><div class="label">Annual Budget (current plan)</div><div class="value">${fmtRp(totalAnnualBudget)}</div></div>
+      <div class="card ${actualCardClass}"><div class="label">Actual Expense ${yearSel}</div><div class="value">${fmtRp(yearActual)}</div><div class="sub-value">${actualSub}</div></div>
+    `;
+
+    renderReminderColumns();
+    renderInsights(yearSel, monthActual, monthByType);
+
+    if (window.Chart) {
+      if (chartMonth) chartMonth.destroy();
+      const typeLabelMap = { Maintenance:'Maintenance', Purchase:'Purchase', Insidental:'Incident', Tagihan:'Bill' };
+      const typeColorMap = { Maintenance:'#2F80ED', Purchase:'#5CA24C', Insidental:'#FBB439', Tagihan:'#FFD97C' };
+      const datasets = Object.keys(monthByType)
+        .filter(k => monthByType[k].some(v => v > 0))
+        .map(k => ({
+          label: typeLabelMap[k] || k,
+          data: monthByType[k],
+          backgroundColor: typeColorMap[k],
+          borderRadius: 3,
+          maxBarThickness: 34
+        }));
+      const ctx1 = document.getElementById('chart-month').getContext('2d');
+      chartMonth = new Chart(ctx1, {
+        type:'bar',
+        data: { labels: MONTHS, datasets: datasets.length ? datasets : [{ label:'Actual Expense', data: monthActual, backgroundColor: '#01416C' }] },
+        options: {
+          responsive:true, maintainAspectRatio:false,
+          plugins:{ legend:{ display:true, position:'bottom', labels:{ boxWidth:10, font:{size:10.5} } },
+            tooltip:{ callbacks:{ label: ctx => `${ctx.dataset.label}: ${fmtRp(ctx.parsed.y)}`, footer: items => { const total = items.reduce((s,it)=>s+it.parsed.y,0); return `Total: ${fmtRp(total)}`; } } } },
+          scales:{ x:{ stacked:true }, y:{ stacked:true, beginAtZero:true, ticks:{ callback: v => fmtRp(v) } } }
+        }
+      });
+    }
+  }
+
+  function renderInsights(yearSel, monthActual, monthByType){
+    // ---- Month-over-Month Trend ----
+    let lastIdx = -1, prevIdx = -1;
+    for (let i = 11; i >= 0; i--) {
+      if (monthActual[i] > 0) { if (lastIdx === -1) lastIdx = i; else { prevIdx = i; break; } }
+    }
+    const trendValueEl = document.getElementById('insight-trend-value');
+    const trendNoteEl = document.getElementById('insight-trend-note');
+    if (lastIdx !== -1 && prevIdx !== -1) {
+      const change = monthActual[lastIdx] - monthActual[prevIdx];
+      const pct = monthActual[prevIdx] ? Math.round((change/monthActual[prevIdx])*100) : null;
+      const arrow = change > 0 ? '&#9650;' : (change < 0 ? '&#9660;' : '&#9679;');
+      const cls = change > 0 ? 'trend-up' : (change < 0 ? 'trend-down' : 'trend-flat');
+      trendValueEl.innerHTML = `<span class="${cls}">${arrow} ${pct===null?'-':Math.abs(pct)+'%'}</span>`;
+      trendNoteEl.textContent = `${MONTHS[lastIdx]} (${fmtRp(monthActual[lastIdx])}) vs ${MONTHS[prevIdx]} (${fmtRp(monthActual[prevIdx])})`;
+    } else {
+      trendValueEl.textContent = '–';
+      trendNoteEl.textContent = 'Not enough monthly data yet';
+    }
+
+    // ---- Forecast (run-rate projection) ----
+    const forecastValueEl = document.getElementById('insight-forecast-value');
+    const forecastNoteEl = document.getElementById('insight-forecast-note');
+    const now = new Date();
+    const isCurrentYear = yearSel === now.getFullYear();
+    const monthsElapsed = isCurrentYear ? now.getMonth()+1 : 12;
+    const yearActualSum = monthActual.reduce((s,v)=>s+v,0);
+    if (isCurrentYear && monthsElapsed > 0 && yearActualSum > 0) {
+      const projected = Math.round((yearActualSum / monthsElapsed) * 12);
+      forecastValueEl.textContent = fmtRp(projected);
+      forecastNoteEl.textContent = `Based on ${monthsElapsed} month(s) of data (run-rate)`;
+    } else if (!isCurrentYear && yearActualSum > 0) {
+      forecastValueEl.textContent = fmtRp(yearActualSum);
+      forecastNoteEl.textContent = `${yearSel} is a closed year (final total)`;
+    } else {
+      forecastValueEl.textContent = '–';
+      forecastNoteEl.textContent = 'Not enough data yet';
+    }
+
+    // ---- Category vs Budget ----
+    const categoryBudgetEl = document.getElementById('insight-category-budget');
+    const catBudgetTotals = {};
+    categoryDefs.forEach(c => { catBudgetTotals[c.key] = 0; });
+    tasks.forEach(it => { if (catBudgetTotals[it.type] !== undefined) catBudgetTotals[it.type] += Number(it.annualBudget||0); });
+    const catRows = categoryDefs.map(c => {
+      const actual = (monthByType[c.key]||[]).reduce((s,v)=>s+v,0);
+      const budget = catBudgetTotals[c.key] || 0;
+      const pct = budget ? Math.round((actual/budget)*100) : null;
+      const barColor = pct === null ? '#BDBDBD' : (pct > 100 ? '#01416C' : (pct > 85 ? '#FBB439' : c.color));
+      const widthPct = pct === null ? 0 : Math.min(pct, 100);
+      return `<div class="cat-budget-row">
+        <div class="cat-budget-name" style="color:${c.color}">${c.label}</div>
+        <div class="progress-track"><div class="progress-fill" style="width:${widthPct}%;background:${barColor};"></div></div>
+        <div class="cat-budget-figs">${fmtRp(actual)} / ${budget ? fmtRp(budget) : 'no budget'}</div>
+        <div class="cat-budget-pct" style="color:${barColor}">${pct===null?'–':pct+'%'}</div>
+      </div>`;
+    }).join('');
+    categoryBudgetEl.innerHTML = catRows;
+
+    // ---- Top 5 Costliest Tasks (selected year) ----
+    const topTasksEl = document.getElementById('insight-top-tasks');
+    const taskYearCost = tasks.map(it => {
+      const cost = (it.history||[]).filter(h => h.date && Number(h.date.slice(0,4)) === yearSel).reduce((s,h)=>s+Number(h.cost||0),0);
+      return { name: it.name, area: it.area, type: it.type, cost };
+    }).filter(t => t.cost > 0).sort((a,b) => b.cost - a.cost).slice(0,5);
+    if (!taskYearCost.length) {
+      topTasksEl.innerHTML = `<div class="empty-note-sm">No completed tasks with cost recorded in ${yearSel}</div>`;
+    } else {
+      topTasksEl.innerHTML = taskYearCost.map((t,i) => `
+        <div class="top-task-row">
+          <div class="top-task-rank">${i+1}</div>
+          <div class="top-task-info">
+            <div class="top-task-name">${escapeHtml(t.name)}</div>
+            <div class="top-task-meta">${escapeHtml(t.area||'-')} &middot; ${catLabel(t.type)}</div>
+          </div>
+          <div class="top-task-cost">${fmtRp(t.cost)}</div>
+        </div>`).join('');
+    }
+
+    // ---- Expense Heatmap by Area (selected year) ----
+    const heatmapEl = document.getElementById('insight-heatmap');
+    const areaCost = {};
+    tasks.forEach(it => {
+      const area = (it.area||'').trim() || 'Unspecified';
+      (it.history||[]).forEach(h => {
+        if (h.date && Number(h.date.slice(0,4)) === yearSel) areaCost[area] = (areaCost[area]||0) + Number(h.cost||0);
+      });
+    });
+    const areaEntries = Object.entries(areaCost).filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]);
+    if (!areaEntries.length) {
+      heatmapEl.innerHTML = `<div class="empty-note-sm">No expense data by area in ${yearSel}</div>`;
+    } else {
+      const maxVal = areaEntries[0][1];
+      heatmapEl.innerHTML = areaEntries.map(([area,val]) => {
+        const pct = Math.round((val/maxVal)*100);
+        const intensity = (0.15 + (pct/100)*0.7).toFixed(2);
+        return `<div class="heatmap-row">
+          <div class="heatmap-area-name">${escapeHtml(area)}</div>
+          <div class="heatmap-bar-track"><div class="heatmap-bar-fill" style="width:${pct}%;background:rgba(1,65,108,${intensity});"></div></div>
+          <div class="heatmap-value">${fmtRp(val)}</div>
+        </div>`;
+      }).join('');
+    }
+  }
+
+  // ---------- Init ----------
+  populateYearFilter();
+  populateHistoryYearFilter();
+  renderTasks();
+  renderDashboard();
+  renderHistoryLog();
+})();
+</script>
+</body>
+</html>
