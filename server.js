@@ -117,7 +117,7 @@ async function fetchAllTasks() {
   const byTask = {};
   historyRes.rows.forEach(h => {
     if (!byTask[h.task_id]) byTask[h.task_id] = [];
-    byTask[h.task_id].push({ date: h.date, cost: Number(h.cost), notes: h.notes });
+    byTask[h.task_id].push({ id: h.id, date: h.date, cost: Number(h.cost), notes: h.notes });
   });
   return tasksRes.rows.map(r => rowToTask(r, byTask[r.id]));
 }
@@ -190,6 +190,51 @@ app.post('/api/tasks/:id/complete', async (req, res) => {
   } catch (e) {
     console.error(e);
     res.status(500).json({ error: 'Failed to complete task' });
+  }
+});
+
+// Edit a single history entry (correcting a past completion record).
+// Deliberately does NOT recompute the task's next_due — that field is only
+// ever touched by the "Mark Done" action, so editing old records stays
+// predictable and doesn't silently reschedule anything.
+app.put('/api/history/:historyId', async (req, res) => {
+  try {
+    const { date, cost, notes } = req.body;
+    const result = await pool.query(
+      'UPDATE history SET date=$1, cost=$2, notes=$3 WHERE id=$4 RETURNING id',
+      [date, cost || 0, notes || '', req.params.historyId]
+    );
+    if (!result.rows.length) return res.status(404).json({ error: 'History entry not found' });
+    res.json({ ok: true });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: 'Failed to update history entry' });
+  }
+});
+
+// Delete a single history entry. If this was the only completion record of a
+// one-off task, the task is reopened (completedOnce reset to false) since it
+// no longer has any record of being done.
+app.delete('/api/history/:historyId', async (req, res) => {
+  try {
+    const beforeRes = await pool.query('SELECT task_id FROM history WHERE id=$1', [req.params.historyId]);
+    if (!beforeRes.rows.length) return res.status(404).json({ error: 'History entry not found' });
+    const taskId = beforeRes.rows[0].task_id;
+
+    await pool.query('DELETE FROM history WHERE id=$1', [req.params.historyId]);
+
+    const taskRes = await pool.query('SELECT * FROM tasks WHERE id=$1', [taskId]);
+    const task = taskRes.rows[0];
+    if (task && !task.frequency_days) {
+      const remaining = await pool.query('SELECT COUNT(*)::int AS c FROM history WHERE task_id=$1', [taskId]);
+      if (remaining.rows[0].c === 0) {
+        await pool.query('UPDATE tasks SET completed_once=FALSE WHERE id=$1', [taskId]);
+      }
+    }
+    res.json({ ok: true });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: 'Failed to delete history entry' });
   }
 });
 

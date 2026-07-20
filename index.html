@@ -291,7 +291,7 @@
 
   <!-- DASHBOARD -->
   <div class="panel active" id="panel-dashboard">
-    <div style="display:flex; justify-content:flex-end; margin-bottom:12px;">
+    <div style="display:flex; justify-content:flex-end; gap:8px; margin-bottom:12px;">
       <button class="btn-ghost" id="btn-download-report">Download Report</button>
     </div>
     <div class="cards" id="summary-cards"></div>
@@ -408,7 +408,7 @@
     </div>
     <div class="table-scroll">
     <table class="simple">
-      <thead><tr><th>Date</th><th>Task</th><th>Type</th><th>Actual Cost</th><th>Notes</th></tr></thead>
+      <thead><tr><th>Date</th><th>Task</th><th>Type</th><th>Actual Cost</th><th>Notes</th><th></th></tr></thead>
       <tbody id="history-log-tbody"></tbody>
     </table>
     </div>
@@ -514,6 +514,19 @@
           <li><strong>Delete</strong> — removes the task and its history permanently. This cannot be undone.</li>
         </ul>
       </div>
+    </div>
+
+    <div class="insight-section">
+      <h4>Slack Notifications</h4>
+      <div class="guide-row">
+        <div class="guide-row-label">Daily Reminder</div>
+        <div class="guide-row-desc">Every weekday (Mon–Fri) at 10:00 WIB, the server checks for tasks that are <strong>Overdue</strong> or <strong>Due Soon (&le;7 days)</strong>. If there's anything to flag, a message is sent to Slack with <code>@here</code> and the list of tasks. If nothing is due, no message is sent that day — no spam on quiet days.</div>
+      </div>
+      <div class="guide-row">
+        <div class="guide-row-label">Biweekly Status</div>
+        <div class="guide-row-desc">Every other Monday at 10:00 WIB, a status snapshot is sent regardless of whether anything is due (total tasks, overdue/due-soon counts, actual expense vs budget). Its main purpose is to double as a <strong>health check</strong> — if this message stops arriving for more than 2 weeks, something has likely broken (server down, Slack connection lost, etc.) and it's worth checking in on.</div>
+      </div>
+      <div class="guide-note"><strong>Note:</strong> this is configured once by whoever manages the server deployment (a Slack webhook URL, set as an environment variable). It isn't something you toggle from this dashboard.</div>
     </div>
 
     <div class="insight-section">
@@ -632,6 +645,33 @@
   </div>
 </div>
 
+<!-- HISTORY EDIT MODAL -->
+<div class="modal-bg" id="history-edit-modal-bg">
+  <div class="modal">
+    <h3>Edit History Entry</h3>
+    <input type="hidden" id="history-edit-id">
+    <div class="field-row">
+      <div class="field">
+        <label>Completion Date</label>
+        <input type="date" id="history-edit-date">
+      </div>
+      <div class="field">
+        <label>Actual Cost (IDR)</label>
+        <input type="number" id="history-edit-cost" min="0" step="10000">
+      </div>
+    </div>
+    <div class="field">
+      <label>Notes (optional)</label>
+      <textarea id="history-edit-notes" rows="2"></textarea>
+    </div>
+    <div class="hint" style="margin-bottom:10px;">This corrects the record only — it won't change the task's next due date.</div>
+    <div class="modal-actions">
+      <button class="btn-ghost" id="history-edit-cancel">Cancel</button>
+      <button class="btn-primary" id="history-edit-save">Save</button>
+    </div>
+  </div>
+</div>
+
 <script>
 (function(){
   const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -652,7 +692,9 @@
     async create(data){ const r = await fetch('/api/tasks', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(data) }); if(!r.ok) throw new Error('Failed to create'); return r.json(); },
     async update(id, data){ const r = await fetch('/api/tasks/'+id, { method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify(data) }); if(!r.ok) throw new Error('Failed to update'); return r.json(); },
     async remove(id){ const r = await fetch('/api/tasks/'+id, { method:'DELETE' }); if(!r.ok) throw new Error('Failed to delete'); return r.json(); },
-    async complete(id, data){ const r = await fetch('/api/tasks/'+id+'/complete', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(data) }); if(!r.ok) throw new Error('Failed to complete'); return r.json(); }
+    async complete(id, data){ const r = await fetch('/api/tasks/'+id+'/complete', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(data) }); if(!r.ok) throw new Error('Failed to complete'); return r.json(); },
+    async updateHistory(historyId, data){ const r = await fetch('/api/history/'+historyId, { method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify(data) }); if(!r.ok) throw new Error('Failed to update history'); return r.json(); },
+    async removeHistory(historyId){ const r = await fetch('/api/history/'+historyId, { method:'DELETE' }); if(!r.ok) throw new Error('Failed to delete history'); return r.json(); }
   };
 
   let tasks = [];
@@ -757,8 +799,8 @@
       if (expandedId === it.id && hasMultiHistory) {
         html += `<tr class="history-row"><td colspan="8">
           <table class="history-table">
-            <thead><tr><th>Date</th><th>Actual Cost</th><th>Notes</th></tr></thead>
-            <tbody>${it.history.slice().sort((a,b)=> a.date<b.date?1:-1).map(h => `<tr><td>${fmtDate(h.date)}</td><td>${fmtRp(h.cost)}</td><td>${escapeHtml(h.notes||'-')}</td></tr>`).join('')}</tbody>
+            <thead><tr><th>Date</th><th>Actual Cost</th><th>Notes</th><th></th></tr></thead>
+            <tbody>${it.history.slice().sort((a,b)=> a.date<b.date?1:-1).map(h => `<tr><td>${fmtDate(h.date)}</td><td>${fmtRp(h.cost)}</td><td>${escapeHtml(h.notes||'-')}</td><td style="white-space:nowrap;"><button class="btn-ghost btn-sm" onclick="OMT.editHistory(${h.id})">Edit</button> <button class="btn-danger btn-sm" onclick="OMT.deleteHistory(${h.id})">Delete</button></td></tr>`).join('')}</tbody>
           </table>
         </td></tr>`;
       }
@@ -907,8 +949,54 @@
       document.getElementById('complete-notes').value = '';
       document.getElementById('complete-hint').textContent = it.frequencyDays ? `The next due date will be calculated automatically (${freqLabel(it.frequencyDays).toLowerCase()}) from this date.` : 'This is a one-time task; once saved it will be marked as Done.';
       completeModalBg.classList.add('open');
+    },
+    editHistory(historyId){
+      let entry = null;
+      for (const t of tasks) {
+        const found = (t.history||[]).find(h => h.id === historyId);
+        if (found) { entry = found; break; }
+      }
+      if (!entry) return;
+      document.getElementById('history-edit-id').value = historyId;
+      document.getElementById('history-edit-date').value = entry.date || '';
+      document.getElementById('history-edit-cost').value = entry.cost || '';
+      document.getElementById('history-edit-notes').value = entry.notes || '';
+      historyEditModalBg.classList.add('open');
+    },
+    async deleteHistory(historyId){
+      if (!confirm('Delete this history entry? This cannot be undone.')) return;
+      try {
+        await API.removeHistory(historyId);
+        await refreshTasks();
+        populateYearFilter(); populateHistoryYearFilter(); renderTasks(); renderHistoryLog(); renderDashboard();
+      } catch(e) {
+        console.error(e);
+        alert('Failed to delete history entry. Please check your connection and try again.');
+      }
     }
   };
+
+  const historyEditModalBg = document.getElementById('history-edit-modal-bg');
+  document.getElementById('history-edit-cancel').addEventListener('click', () => historyEditModalBg.classList.remove('open'));
+  document.getElementById('history-edit-save').addEventListener('click', async () => {
+    const historyId = Number(document.getElementById('history-edit-id').value);
+    const date = document.getElementById('history-edit-date').value;
+    const cost = Number(document.getElementById('history-edit-cost').value || 0);
+    const notes = document.getElementById('history-edit-notes').value.trim();
+    const saveBtn = document.getElementById('history-edit-save');
+    saveBtn.disabled = true; saveBtn.textContent = 'Saving...';
+    try {
+      await API.updateHistory(historyId, { date, cost, notes });
+      await refreshTasks();
+      historyEditModalBg.classList.remove('open');
+      renderTasks(); renderHistoryLog(); renderDashboard();
+    } catch(e) {
+      console.error(e);
+      alert('Failed to save changes. Please check your connection and try again.');
+    } finally {
+      saveBtn.disabled = false; saveBtn.textContent = 'Save';
+    }
+  });
 
   // ---------- CSV Export ----------
   function csvCell(v){ const s = String(v??''); return '"' + s.replace(/"/g,'""') + '"'; }
@@ -938,7 +1026,7 @@
     const records = [];
     tasks.forEach(it => {
       (it.history||[]).forEach(h => {
-        records.push({ date: h.date, name: it.name, area: it.area, type: it.type, cost: Number(h.cost||0), notes: h.notes||'', taskId: it.id });
+        records.push({ historyId: h.id, date: h.date, name: it.name, area: it.area, type: it.type, cost: Number(h.cost||0), notes: h.notes||'', taskId: it.id });
       });
     });
     return records;
@@ -967,7 +1055,7 @@
     const records = filteredHistoryRecords();
     const tbody = document.getElementById('history-log-tbody');
     if (!records.length) {
-      tbody.innerHTML = '<tr class="empty-row"><td colspan="5">No history matches the current filter.</td></tr>';
+      tbody.innerHTML = '<tr class="empty-row"><td colspan="6">No history matches the current filter.</td></tr>';
     } else {
       tbody.innerHTML = records.map(r => {
         const pillClass = r.type === 'Purchase' ? 'purchase' : (r.type === 'Insidental' ? 'insidental' : (r.type === 'Tagihan' ? 'tagihan' : 'maintenance'));
@@ -978,6 +1066,7 @@
           <td><span class="type-pill ${pillClass}">${escapeHtml(pillLabel)}</span></td>
           <td>${fmtRp(r.cost)}</td>
           <td>${escapeHtml(r.notes||'-')}</td>
+          <td style="white-space:nowrap;"><button class="btn-ghost btn-sm" onclick="OMT.editHistory(${r.historyId})">Edit</button> <button class="btn-danger btn-sm" onclick="OMT.deleteHistory(${r.historyId})">Delete</button></td>
         </tr>`;
       }).join('');
     }
