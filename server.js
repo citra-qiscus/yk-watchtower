@@ -24,6 +24,15 @@ function annualBudgetFrom(estCost, freqDays) {
   return freqDays ? Math.round(estCost * (365 / freqDays)) : 0;
 }
 
+const OFFICES = ['YK', 'JKT'];
+const OFFICE_LABELS = { YK: 'Yogyakarta Office', JKT: 'Jakarta Office' };
+function normalizeOffice(v) {
+  return OFFICES.includes(v) ? v : 'YK';
+}
+function officeLabel(v) {
+  return OFFICE_LABELS[normalizeOffice(v)];
+}
+
 async function initDb() {
   await pool.query(`
     CREATE TABLE IF NOT EXISTS tasks (
@@ -38,9 +47,13 @@ async function initDb() {
       next_due TEXT DEFAULT '',
       notes TEXT DEFAULT '',
       completed_once BOOLEAN DEFAULT FALSE,
+      office TEXT NOT NULL DEFAULT 'YK',
       created_at TIMESTAMPTZ DEFAULT NOW()
     );
   `);
+  // Additive migration for databases created before the "office" column existed —
+  // existing rows all default to 'YK' so the original single-office data stays intact.
+  await pool.query(`ALTER TABLE tasks ADD COLUMN IF NOT EXISTS office TEXT NOT NULL DEFAULT 'YK';`);
   await pool.query(`
     CREATE TABLE IF NOT EXISTS history (
       id SERIAL PRIMARY KEY,
@@ -60,10 +73,10 @@ async function initDb() {
 
 async function insertTask(t) {
   await pool.query(
-    `INSERT INTO tasks (id, name, area, type, frequency_days, pic, est_cost, annual_budget, next_due, notes, completed_once)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)`,
+    `INSERT INTO tasks (id, name, area, type, frequency_days, pic, est_cost, annual_budget, next_due, notes, completed_once, office)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)`,
     [t.id, t.name, t.area || '', t.type || 'Maintenance', t.frequencyDays || null, t.pic || '',
-     t.estCost || 0, t.annualBudget || 0, t.nextDue || '', t.notes || '', t.completedOnce || false]
+     t.estCost || 0, t.annualBudget || 0, t.nextDue || '', t.notes || '', t.completedOnce || false, normalizeOffice(t.office)]
   );
   for (const h of (t.history || [])) {
     await pool.query('INSERT INTO history (task_id, date, cost, notes) VALUES ($1,$2,$3,$4)',
@@ -74,7 +87,7 @@ async function insertTask(t) {
 async function seedData() {
   const t = new Date().toISOString().slice(0, 10);
   const seed = [
-    { id: uid(), name: 'Cleaning & Checking', area: 'AC (All Room)', type: 'Maintenance', frequencyDays: 30, pic: 'Vendor', estCost: 1200000, nextDue: addDays(t, -3), history: [{ date: addDays(t, -33), cost: 1150000, notes: '' }] },
+    { id: uid(), office: 'YK', name: 'Cleaning & Checking', area: 'AC (All Room)', type: 'Maintenance', frequencyDays: 30, pic: 'Vendor', estCost: 1200000, nextDue: addDays(t, -3), history: [{ date: addDays(t, -33), cost: 1150000, notes: '' }] },
     { id: uid(), name: 'Monitoring & Troubleshooting', area: 'Internet & Network', type: 'Maintenance', frequencyDays: 90, pic: 'Vendor', estCost: 200000, nextDue: addDays(t, 2), history: [{ date: addDays(t, -88), cost: 180000, notes: '' }] },
     { id: uid(), name: 'System Check', area: 'CCTV', type: 'Maintenance', frequencyDays: 30, pic: 'Vendor', estCost: 200000, nextDue: addDays(t, 12), history: [] },
     { id: uid(), name: 'System Check', area: 'Access Door System', type: 'Maintenance', frequencyDays: 180, pic: 'Ops', estCost: 0, nextDue: addDays(t, 55), history: [] },
@@ -107,12 +120,15 @@ function rowToTask(row, history) {
     nextDue: row.next_due,
     notes: row.notes,
     completedOnce: row.completed_once,
+    office: row.office,
     history: history || []
   };
 }
 
-async function fetchAllTasks() {
-  const tasksRes = await pool.query('SELECT * FROM tasks ORDER BY created_at ASC');
+async function fetchAllTasks(office) {
+  const tasksRes = office
+    ? await pool.query('SELECT * FROM tasks WHERE office=$1 ORDER BY created_at ASC', [normalizeOffice(office)])
+    : await pool.query('SELECT * FROM tasks ORDER BY created_at ASC');
   const historyRes = await pool.query('SELECT * FROM history ORDER BY date ASC, id ASC');
   const byTask = {};
   historyRes.rows.forEach(h => {
@@ -124,7 +140,7 @@ async function fetchAllTasks() {
 
 app.get('/api/tasks', async (req, res) => {
   try {
-    res.json(await fetchAllTasks());
+    res.json(await fetchAllTasks(req.query.office));
   } catch (e) {
     console.error(e);
     res.status(500).json({ error: 'Failed to load tasks' });
@@ -136,10 +152,10 @@ app.post('/api/tasks', async (req, res) => {
     const t = req.body;
     const id = uid();
     await pool.query(
-      `INSERT INTO tasks (id, name, area, type, frequency_days, pic, est_cost, annual_budget, next_due, notes, completed_once)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,false)`,
+      `INSERT INTO tasks (id, name, area, type, frequency_days, pic, est_cost, annual_budget, next_due, notes, completed_once, office)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,false,$11)`,
       [id, t.name, t.area || '', t.type || 'Maintenance', t.frequencyDays || null, t.pic || '',
-       t.estCost || 0, t.annualBudget || 0, t.nextDue || '', t.notes || '']
+       t.estCost || 0, t.annualBudget || 0, t.nextDue || '', t.notes || '', normalizeOffice(t.office)]
     );
     res.json({ id });
   } catch (e) {
@@ -415,7 +431,7 @@ function buildMonthlySummary(month, yearSel, completed, totalExpense, monthlyBud
   return `<div class="summary-box"><p>${narrative}</p><ul>${bullets.map(b => `<li>${b}</li>`).join('')}</ul></div>`;
 }
 
-function buildMonthlyReportHtml(yearSel, month, tasks) {
+function buildMonthlyReportHtml(yearSel, month, tasks, office) {
   const genDate = new Date().toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
   const ymKey = `${yearSel}-${String(month).padStart(2, '0')}`;
 
@@ -491,11 +507,11 @@ function buildMonthlyReportHtml(yearSel, month, tasks) {
     : `<div class="empty-note">No incidents recorded this month.</div>`;
 
   return `<!DOCTYPE html>
-<html lang="en"><head><meta charset="UTF-8"><title>YK Watchtower — Monthly Report ${MONTH_NAMES_FULL[month - 1]} ${yearSel}</title>
+<html lang="en"><head><meta charset="UTF-8"><title>Ops Watchtower — Monthly Report ${MONTH_NAMES_FULL[month - 1]} ${yearSel}</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"><style>${REPORT_STYLE}</style></head>
 <body><div class="page">
   <div class="report-header">
-    <div class="report-eyebrow">YK Watchtower &middot; Yogyakarta Office</div>
+    <div class="report-eyebrow">Ops Watchtower &middot; ${officeLabel(office)}</div>
     <h1>Monthly Report</h1>
     <div class="meta">${MONTH_NAMES_FULL[month - 1]} ${yearSel} &middot; Generated ${genDate}</div>
   </div>
@@ -524,7 +540,7 @@ function buildMonthlyReportHtml(yearSel, month, tasks) {
   <h2>Scheduled / Still Due This Month</h2>
   <table><thead><tr><th>Task</th><th>Area</th><th>Handled By</th><th>Due Date</th></tr></thead><tbody>${scheduledRows}</tbody></table>
 
-  <div class="footer">YK Watchtower &middot; Internal Tool &middot; qiscus.com</div>
+  <div class="footer">Ops Watchtower &middot; Internal Tool &middot; qiscus.com</div>
 </div></body></html>`;
 }
 
@@ -544,9 +560,10 @@ app.get('/api/reports/monthly', async (req, res) => {
     const prev = getPreviousMonth();
     const year = Number(req.query.year) || prev.year;
     const month = Number(req.query.month) || prev.month;
-    const tasks = await fetchAllTasks();
-    const html = buildMonthlyReportHtml(year, month, tasks);
-    const filename = `office-maintenance-monthly-${year}-${String(month).padStart(2, '0')}.html`;
+    const office = normalizeOffice(req.query.office);
+    const tasks = await fetchAllTasks(office);
+    const html = buildMonthlyReportHtml(year, month, tasks, office);
+    const filename = `${office.toLowerCase()}-maintenance-monthly-${year}-${String(month).padStart(2, '0')}.html`;
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
     res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
     res.send(html);
@@ -589,7 +606,7 @@ function fmtDateHuman(d) {
 function taskLine(t, isOverdue) {
   const area = t.area ? ` — ${t.area}` : '';
   const dateLabel = isOverdue ? `was due ${fmtDateHuman(t.next_due)}` : `due ${fmtDateHuman(t.next_due)}`;
-  return `• *${t.name}*${area} — ${dateLabel}`;
+  return `• *[${normalizeOffice(t.office)}] ${t.name}*${area} — ${dateLabel}`;
 }
 
 async function sendSlackDigest({ force } = {}) {
@@ -610,7 +627,7 @@ async function sendSlackDigest({ force } = {}) {
   const mention = process.env.SLACK_MENTION ?? '<!here>';
 
   const dateLabel = fmtDateHuman(today);
-  let text = `:bell: *YK Watchtower — Daily Reminder* (${dateLabel})`;
+  let text = `:bell: *Ops Watchtower — Daily Reminder* (${dateLabel})`;
   if (mention) text += ` ${mention}`;
   text += '\n';
   if (overdue.length) {
@@ -676,25 +693,32 @@ async function buildBiweeklyStats() {
 
   const tasksRes = await pool.query('SELECT * FROM tasks');
   const tasks = tasksRes.rows;
-  const totalTasks = tasks.length;
-  const totalAnnualBudget = tasks.reduce((s, t) => s + Number(t.annual_budget || 0), 0);
-
-  let overdueCount = 0, soonCount = 0;
-  tasks.forEach(t => {
-    if (!t.next_due) return;
-    if (!t.frequency_days && t.completed_once) return;
-    if (t.next_due < today) { overdueCount++; return; }
-    if (daysBetween(today, t.next_due) <= 7) soonCount++;
-  });
 
   const historyRes = await pool.query(
-    `SELECT COALESCE(SUM(cost),0)::numeric AS total FROM history WHERE date >= $1 AND date <= $2`,
+    `SELECT t.office AS office, COALESCE(SUM(h.cost),0)::numeric AS total
+     FROM history h JOIN tasks t ON t.id = h.task_id
+     WHERE h.date >= $1 AND h.date <= $2 GROUP BY t.office`,
     [`${year}-01-01`, `${year}-12-31`]
   );
-  const yearActual = Number(historyRes.rows[0].total);
-  const budgetPct = totalAnnualBudget ? Math.round((yearActual / totalAnnualBudget) * 100) : null;
+  const actualByOffice = {};
+  historyRes.rows.forEach(r => { actualByOffice[normalizeOffice(r.office)] = Number(r.total); });
 
-  return { totalTasks, overdueCount, soonCount, totalAnnualBudget, yearActual, budgetPct, year };
+  const perOffice = OFFICES.map(office => {
+    const officeTasks = tasks.filter(t => normalizeOffice(t.office) === office);
+    const totalAnnualBudget = officeTasks.reduce((s, t) => s + Number(t.annual_budget || 0), 0);
+    let overdueCount = 0, soonCount = 0;
+    officeTasks.forEach(t => {
+      if (!t.next_due) return;
+      if (!t.frequency_days && t.completed_once) return;
+      if (t.next_due < today) { overdueCount++; return; }
+      if (daysBetween(today, t.next_due) <= 7) soonCount++;
+    });
+    const yearActual = actualByOffice[office] || 0;
+    const budgetPct = totalAnnualBudget ? Math.round((yearActual / totalAnnualBudget) * 100) : null;
+    return { office, totalTasks: officeTasks.length, overdueCount, soonCount, totalAnnualBudget, yearActual, budgetPct };
+  });
+
+  return { perOffice, year };
 }
 
 function fmtRpServer(n) {
@@ -712,18 +736,21 @@ async function sendBiweeklyDigest() {
   const prev = getPreviousMonth();
   const prevMonthLabel = `${MONTH_NAMES_FULL[prev.month - 1]} ${prev.year}`;
 
-  let text = `:bar_chart: *YK Watchtower — Biweekly Status* (${dateLabel})\n`;
+  let text = `:bar_chart: *Ops Watchtower — Biweekly Status* (${dateLabel})\n`;
   text += `:white_check_mark: System check: reminders are running normally.\n\n`;
-  text += `*Snapshot:*\n`;
-  text += `• Total Tasks: ${s.totalTasks}\n`;
-  text += `• Overdue: ${s.overdueCount}\n`;
-  text += `• Due Soon (\u22647 days): ${s.soonCount}\n`;
-  text += `• Actual Expense ${s.year}: ${fmtRpServer(s.yearActual)}`;
-  text += s.totalAnnualBudget ? ` (${s.budgetPct}% of annual budget ${fmtRpServer(s.totalAnnualBudget)})\n` : ' (annual budget not set)\n';
-  if (SITE_URL) {
-    text += `\n<${SITE_URL}|Open dashboard>`;
-    text += `  ·  <${SITE_URL}/api/reports/monthly?year=${prev.year}&month=${prev.month}|\u{1F4C4} Download ${prevMonthLabel} Report>`;
-  }
+  s.perOffice.forEach(o => {
+    text += `*${officeLabel(o.office)} (${o.office}) Snapshot:*\n`;
+    text += `• Total Tasks: ${o.totalTasks}\n`;
+    text += `• Overdue: ${o.overdueCount}\n`;
+  text += `• Due Soon (\u22647 days): ${o.soonCount}\n`;
+  text += `• Actual Expense ${s.year}: ${fmtRpServer(o.yearActual)}`;
+    text += o.totalAnnualBudget ? ` (${o.budgetPct}% of annual budget ${fmtRpServer(o.totalAnnualBudget)})\n` : ' (annual budget not set)\n';
+    if (SITE_URL) {
+    text += `  ·  <${SITE_URL}/api/reports/monthly?year=${prev.year}&month=${prev.month}&office=${o.office}|\u{1F4C4} Download ${prevMonthLabel} Report>\n`;
+    }
+    text += '\n';
+  });
+  if (SITE_URL) text += `<${SITE_URL}|Open dashboard>`;
 
   const resp = await fetch(webhookUrl, {
     method: 'POST',
@@ -763,7 +790,7 @@ app.get('*', (req, res) => {
 
 const PORT = process.env.PORT || 3000;
 initDb()
-  .then(() => app.listen(PORT, () => console.log('YK Watchtower server running on port ' + PORT)))
+  .then(() => app.listen(PORT, () => console.log('Ops Watchtower server running on port ' + PORT)))
   .catch(err => {
     console.error('Failed to initialize database', err);
     process.exit(1);

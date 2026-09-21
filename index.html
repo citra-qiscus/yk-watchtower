@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>YK Watchtower</title>
+<title>Ops Watchtower</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.0/dist/chart.umd.js" integrity="sha384-iU8HYtnGQ8Cy4zl7gbNMOhsDTTKX02BTXptVP/vqAWIaTfM7isw76iyZCsjL2eVi" crossorigin="anonymous"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -53,6 +53,10 @@
   .year-field .hint { color:rgba(255,255,255,0.6); font-size:11px; text-transform:uppercase; letter-spacing:.03em; }
   .year-field select { font-weight:600; color:#fff; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.22); }
   .year-field select:focus { border-color:var(--green); box-shadow:0 0 0 3px rgba(116,193,98,0.25); }
+  .office-switch { display:flex; gap:2px; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.2); border-radius:999px; padding:3px; }
+  .office-btn { border:none; background:none; padding:7px 16px; font-size:12px; font-weight:700; letter-spacing:0.02em; color:rgba(255,255,255,0.65); cursor:pointer; border-radius:999px; transition:background .15s,color .15s; }
+  .office-btn:hover:not(.active) { color:#fff; }
+  .office-btn.active { background:var(--green); color:var(--navy); }
 
   header.page-header { margin-bottom: 10px; }
   .eyebrow { font-size:11px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:var(--green-dark); display:flex; align-items:center; gap:7px; margin-bottom:6px; }
@@ -244,11 +248,15 @@
     <img class="brand-logo" alt="Qiscus" src="data:image/png;base64,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">
     <div class="brand-divider"></div>
     <div class="brand-text">
-      <div class="brand-title">YK Watchtower<span class="brand-beacon" title="Live monitoring"></span></div>
-      <div class="brand-caption">Yogyakarta Office &middot; Facility Monitoring</div>
+      <div class="brand-title">Ops Watchtower<span class="brand-beacon" title="Live monitoring"></span></div>
+      <div class="brand-caption" id="brand-caption">Yogyakarta Office &middot; Facility Monitoring</div>
     </div>
   </div>
   <div class="topbar-controls" style="display:flex; gap:14px; align-items:center;">
+    <div class="office-switch" role="tablist" aria-label="Office">
+      <button class="office-btn active" data-office="YK" type="button">YK</button>
+      <button class="office-btn" data-office="JKT" type="button">JKT</button>
+    </div>
     <div class="year-field">
       <label class="hint" style="margin:0;">Report Year</label>
       <select id="year-filter"></select>
@@ -279,7 +287,7 @@
   <header class="page-header">
     <div class="eyebrow">Status Board</div>
     <h1>Facility Overview</h1>
-    <div class="sub">Keeping watch over maintenance, purchases, bills, and incidents at the Yogyakarta office — so nothing slips past unnoticed.</div>
+    <div class="sub" id="page-sub">Keeping watch over maintenance, purchases, bills, and incidents at the Yogyakarta office — so nothing slips past unnoticed.</div>
   </header>
 
   <div class="tabs">
@@ -417,7 +425,7 @@
 
   <!-- GUIDE -->
   <div class="panel" id="panel-guide">
-    <div class="section-desc">A quick reference for how YK Watchtower works — statuses, categories, budget calculations, and what each dashboard insight means.</div>
+    <div class="section-desc">A quick reference for how Ops Watchtower works — statuses, categories, budget calculations, and what each dashboard insight means.</div>
 
     <div class="guide-grid">
       <div class="insight-section" style="margin-bottom:0;">
@@ -686,10 +694,24 @@
   function todayStr(){ return new Date().toISOString().slice(0,10); }
   function freqLabel(days){ if (!days) return 'Once'; return FREQ_LABELS[String(days)] || (days + ' days'); }
 
+  // ---------- Office (YK / JKT) ----------
+  const OFFICES = { YK: 'Yogyakarta Office', JKT: 'Jakarta Office' };
+  function officeName(code){ return OFFICES[code] || code; }
+  let currentOffice = 'YK';
+  try {
+    const saved = localStorage.getItem('watchtower_office');
+    if (saved && OFFICES[saved]) currentOffice = saved;
+  } catch(e) {}
+  function updateOfficeUI(){
+    document.querySelectorAll('.office-btn').forEach(b => b.classList.toggle('active', b.dataset.office === currentOffice));
+    document.getElementById('brand-caption').textContent = officeName(currentOffice) + ' · Facility Monitoring';
+    document.getElementById('page-sub').textContent = `Keeping watch over maintenance, purchases, bills, and incidents at the ${officeName(currentOffice)} — so nothing slips past unnoticed.`;
+  }
+
   // ---------- Live backend API (shared database — not per-browser anymore) ----------
   const API = {
-    async list(){ const r = await fetch('/api/tasks'); if(!r.ok) throw new Error('Failed to load'); return r.json(); },
-    async create(data){ const r = await fetch('/api/tasks', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(data) }); if(!r.ok) throw new Error('Failed to create'); return r.json(); },
+    async list(){ const r = await fetch('/api/tasks?office='+encodeURIComponent(currentOffice)); if(!r.ok) throw new Error('Failed to load'); return r.json(); },
+    async create(data){ const r = await fetch('/api/tasks', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({...data, office: currentOffice}) }); if(!r.ok) throw new Error('Failed to create'); return r.json(); },
     async update(id, data){ const r = await fetch('/api/tasks/'+id, { method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify(data) }); if(!r.ok) throw new Error('Failed to update'); return r.json(); },
     async remove(id){ const r = await fetch('/api/tasks/'+id, { method:'DELETE' }); if(!r.ok) throw new Error('Failed to delete'); return r.json(); },
     async complete(id, data){ const r = await fetch('/api/tasks/'+id+'/complete', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(data) }); if(!r.ok) throw new Error('Failed to complete'); return r.json(); },
@@ -743,6 +765,22 @@
     });
   });
   document.getElementById('year-filter').addEventListener('change', renderDashboard);
+
+  // ---------- Office switch ----------
+  document.querySelectorAll('.office-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      if (btn.dataset.office === currentOffice) return;
+      currentOffice = btn.dataset.office;
+      try { localStorage.setItem('watchtower_office', currentOffice); } catch(e) {}
+      updateOfficeUI();
+      try { await refreshTasks(); } catch(e) { console.error('Failed to refresh tasks', e); }
+      populateYearFilter();
+      populateHistoryYearFilter();
+      renderTasks();
+      renderDashboard();
+      renderHistoryLog();
+    });
+  });
 
   // ---------- Render Task List ----------
   let expandedId = null;
@@ -1018,7 +1056,7 @@
         it.history.forEach(h => rows.push([it.name, it.area, it.type, freqLabel(it.frequencyDays), it.pic, it.estCost, it.nextDue||'', h.date, h.cost, h.notes||'']));
       }
     });
-    downloadCSV('office-maintenance-tracker.csv', rows);
+    downloadCSV(`${currentOffice.toLowerCase()}-maintenance-tracker.csv`, rows);
   });
 
   // ---------- History Log ----------
@@ -1080,7 +1118,7 @@
     const records = filteredHistoryRecords();
     const rows = [['Date','Task Name','Area','Type','Actual Cost (IDR)','Notes']];
     records.forEach(r => rows.push([r.date, r.name, r.area, r.type, r.cost, r.notes]));
-    downloadCSV('office-maintenance-history.csv', rows);
+    downloadCSV(`${currentOffice.toLowerCase()}-maintenance-history.csv`, rows);
   });
 
   // ---------- Reminder columns ----------
@@ -1423,11 +1461,11 @@
     const nextMonthRows = d.nextMonthList.length ? d.nextMonthList.map(reportTaskRow).join('') : '<tr><td colspan="4" style="text-align:center;color:#828282;">None</td></tr>';
 
     return `<!DOCTYPE html>
-<html lang="en"><head><meta charset="UTF-8"><title>YK Watchtower — Overview Report ${d.yearSel}</title>
+<html lang="en"><head><meta charset="UTF-8"><title>Ops Watchtower — Overview Report ${d.yearSel}</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"><style>${REPORT_STYLE}</style></head>
 <body><div class="page">
   <div class="report-header">
-    <div class="report-eyebrow">YK Watchtower &middot; Yogyakarta Office</div>
+    <div class="report-eyebrow">Ops Watchtower &middot; ${officeName(currentOffice)}</div>
     <h1>Overview Report</h1>
     <div class="meta">Generated ${genDate} &middot; Report year ${d.yearSel}</div>
   </div>
@@ -1459,7 +1497,7 @@
     <div><strong>Next Month</strong><table><thead><tr><th>Task</th><th>Area</th><th>Due</th></tr></thead><tbody>${nextMonthRows}</tbody></table></div>
   </div>
 
-  <div class="footer">YK Watchtower &middot; Internal Tool &middot; qiscus.com</div>
+  <div class="footer">Ops Watchtower &middot; Internal Tool &middot; qiscus.com</div>
 </div></body></html>`;
   }
 
@@ -1568,11 +1606,11 @@
       : `<div class="empty-note">No incidents recorded this month.</div>`;
 
     return `<!DOCTYPE html>
-<html lang="en"><head><meta charset="UTF-8"><title>YK Watchtower — Monthly Report ${MONTH_NAMES_FULL[month-1]} ${yearSel}</title>
+<html lang="en"><head><meta charset="UTF-8"><title>Ops Watchtower — Monthly Report ${MONTH_NAMES_FULL[month-1]} ${yearSel}</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"><style>${REPORT_STYLE}</style></head>
 <body><div class="page">
   <div class="report-header">
-    <div class="report-eyebrow">YK Watchtower &middot; Yogyakarta Office</div>
+    <div class="report-eyebrow">Ops Watchtower &middot; ${officeName(currentOffice)}</div>
     <h1>Monthly Report</h1>
     <div class="meta">${MONTH_NAMES_FULL[month-1]} ${yearSel} &middot; Generated ${genDate}</div>
   </div>
@@ -1601,7 +1639,7 @@
   <h2>Scheduled / Still Due This Month</h2>
   <table><thead><tr><th>Task</th><th>Area</th><th>Handled By</th><th>Due Date</th></tr></thead><tbody>${scheduledRows}</tbody></table>
 
-  <div class="footer">YK Watchtower &middot; Internal Tool &middot; qiscus.com</div>
+  <div class="footer">Ops Watchtower &middot; Internal Tool &middot; qiscus.com</div>
 </div></body></html>`;
   }
 
@@ -1612,10 +1650,10 @@
     let html, filename;
     if (monthVal) {
       html = buildMonthlyReportHtml(yearSel, Number(monthVal));
-      filename = `office-maintenance-monthly-${yearSel}-${String(monthVal).padStart(2,'0')}.html`;
+      filename = `${currentOffice.toLowerCase()}-maintenance-monthly-${yearSel}-${String(monthVal).padStart(2,'0')}.html`;
     } else {
       html = buildOverviewReportHtml();
-      filename = `office-maintenance-overview-${todayStr()}.html`;
+      filename = `${currentOffice.toLowerCase()}-maintenance-overview-${todayStr()}.html`;
     }
     const blob = new Blob([html], { type: 'text/html;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
@@ -1802,6 +1840,7 @@
 
   // ---------- Init ----------
   async function boot(){
+    updateOfficeUI();
     try {
       await refreshTasks();
     } catch(e) {
