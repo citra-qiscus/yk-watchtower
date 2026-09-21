@@ -327,6 +327,16 @@
       </div>
     </div>
 
+    <div class="insight-section">
+      <h4>Monthly Expense Summary (selected year)</h4>
+      <div class="table-scroll">
+        <table class="simple">
+          <thead><tr><th>Month</th><th style="text-align:right">Actual Expense</th><th style="text-align:right">Tasks Completed</th></tr></thead>
+          <tbody id="monthly-summary-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
     <div class="insights-row">
       <div class="insight-card">
         <h4>Month-over-Month Trend</h4>
@@ -1663,6 +1673,19 @@
     URL.revokeObjectURL(url);
   });
 
+  // ---------- Monthly Expense Summary table ----------
+  function renderMonthlySummary(monthActual, monthCount){
+    const tbody = document.getElementById('monthly-summary-tbody');
+    const totalExpense = monthActual.reduce((s,v)=>s+v,0);
+    const totalCount = monthCount.reduce((s,v)=>s+v,0);
+    if (!totalExpense && !totalCount) {
+      tbody.innerHTML = '<tr class="empty-row"><td colspan="3">No expense data recorded for the selected year.</td></tr>';
+      return;
+    }
+    const rows = MONTHS.map((m,i) => `<tr><td>${m}</td><td style="text-align:right">${fmtRp(monthActual[i])}</td><td style="text-align:right">${monthCount[i]}</td></tr>`).join('');
+    tbody.innerHTML = rows + `<tr style="font-weight:700;"><td>Total</td><td style="text-align:right">${fmtRp(totalExpense)}</td><td style="text-align:right">${totalCount}</td></tr>`;
+  }
+
   // ---------- Dashboard ----------
   let chartMonth;
   function renderDashboard(){
@@ -1671,6 +1694,7 @@
     const soonCount = tasks.filter(it => computeStatus(it).key === 'soon').length;
 
     const monthActual = new Array(12).fill(0);
+    const monthCount = new Array(12).fill(0);
     let yearActual = 0;
     const typeActual = { Maintenance:0, Purchase:0, Insidental:0, Tagihan:0 };
     const monthByType = { Maintenance:new Array(12).fill(0), Purchase:new Array(12).fill(0), Insidental:new Array(12).fill(0), Tagihan:new Array(12).fill(0) };
@@ -1684,6 +1708,7 @@
           yearActual += cost;
           const mIdx = Number(h.date.slice(5,7))-1;
           monthActual[mIdx] += cost;
+          monthCount[mIdx]++;
           if (monthByType[it.type]) monthByType[it.type][mIdx] += cost;
         }
       });
@@ -1705,6 +1730,7 @@
 
     renderReminderColumns();
     renderInsights(yearSel, monthActual, monthByType);
+    renderMonthlySummary(monthActual, monthCount);
 
     if (window.Chart) {
       if (chartMonth) chartMonth.destroy();
