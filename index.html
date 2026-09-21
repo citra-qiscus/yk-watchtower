@@ -420,6 +420,21 @@
         <select id="filter-history-year">
           <option value="">All Years</option>
         </select>
+        <select id="filter-history-month">
+          <option value="">All Months</option>
+          <option value="1">Jan</option>
+          <option value="2">Feb</option>
+          <option value="3">Mar</option>
+          <option value="4">Apr</option>
+          <option value="5">May</option>
+          <option value="6">Jun</option>
+          <option value="7">Jul</option>
+          <option value="8">Aug</option>
+          <option value="9">Sep</option>
+          <option value="10">Oct</option>
+          <option value="11">Nov</option>
+          <option value="12">Dec</option>
+        </select>
         <input type="text" id="filter-history-search" placeholder="Search name/area...">
       </div>
       <button class="btn-ghost" id="btn-export-history">Export CSV</button>
@@ -1091,10 +1106,12 @@
   function filteredHistoryRecords(){
     const typeFilter = document.getElementById('filter-history-type').value;
     const yearFilter = document.getElementById('filter-history-year').value;
+    const monthFilter = document.getElementById('filter-history-month').value;
     const search = document.getElementById('filter-history-search').value.trim().toLowerCase();
     let records = buildHistoryRecords();
     if (typeFilter) records = records.filter(r => r.type === typeFilter);
     if (yearFilter) records = records.filter(r => r.date && r.date.slice(0,4) === String(yearFilter));
+    if (monthFilter) records = records.filter(r => r.date && r.date.slice(5,7) === String(monthFilter).padStart(2,'0'));
     if (search) records = records.filter(r => (r.name+' '+(r.area||'')).toLowerCase().includes(search));
     records.sort((a,b) => a.date < b.date ? 1 : -1);
     return records;
@@ -1122,6 +1139,7 @@
     document.getElementById('history-log-total').textContent = `Total (filtered): ${fmtRp(total)} · ${records.length} entries`;
   }
   document.getElementById('filter-history-type').addEventListener('change', renderHistoryLog);
+  document.getElementById('filter-history-month').addEventListener('change', renderHistoryLog);
   document.getElementById('filter-history-year').addEventListener('change', renderHistoryLog);
   document.getElementById('filter-history-search').addEventListener('input', renderHistoryLog);
   document.getElementById('btn-export-history').addEventListener('click', () => {
