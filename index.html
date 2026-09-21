@@ -328,13 +328,17 @@
     </div>
 
     <div class="insight-section">
-      <h4>Monthly Expense Summary (selected year)</h4>
+      <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:12px;">
+        <h4 style="margin:0;"><span id="monthly-summary-title">Monthly Expense Summary (selected year)</span></h4>
+        <button class="btn-ghost btn-sm" id="monthly-summary-clear" style="display:none;">&times; Clear</button>
+      </div>
       <div class="table-scroll">
         <table class="simple">
-          <thead><tr><th>Month</th><th style="text-align:right">Actual Expense</th><th style="text-align:right">Tasks Completed</th></tr></thead>
+          <thead id="monthly-summary-thead"><tr><th>Month</th><th style="text-align:right">Actual Expense</th><th style="text-align:right">Tasks Completed</th></tr></thead>
           <tbody id="monthly-summary-tbody"></tbody>
         </table>
       </div>
+      <div class="hint">Tip: click a bar segment in the chart above (e.g. the Bill or Purchase portion of a month) to see the itemized detail here.</div>
     </div>
 
     <div class="insights-row">
@@ -1691,9 +1695,48 @@
     URL.revokeObjectURL(url);
   });
 
-  // ---------- Monthly Expense Summary table ----------
-  function renderMonthlySummary(monthActual, monthCount){
+  // ---------- Monthly Expense Summary table (with chart drill-down) ----------
+  const CATEGORY_LABEL_TO_TYPE = { Maintenance:'Maintenance', Purchase:'Purchase', Incident:'Insidental', Bill:'Tagihan' };
+  let monthlySummaryDrill = null; // { monthIdx, typeKey, typeLabel } | null
+
+  function renderMonthlySummary(yearSel, monthActual, monthCount){
+    const titleEl = document.getElementById('monthly-summary-title');
+    const clearBtn = document.getElementById('monthly-summary-clear');
+    const theadEl = document.getElementById('monthly-summary-thead');
     const tbody = document.getElementById('monthly-summary-tbody');
+
+    if (monthlySummaryDrill) {
+      const { monthIdx, typeKey, typeLabel } = monthlySummaryDrill;
+      titleEl.textContent = `${typeLabel} — ${MONTHS[monthIdx]} ${yearSel}`;
+      clearBtn.style.display = 'inline-block';
+      theadEl.innerHTML = '<tr><th>Date</th><th>Task</th><th>Area</th><th style="text-align:right">Cost</th><th>Notes</th></tr>';
+
+      const items = [];
+      tasks.forEach(it => {
+        if (typeKey && it.type !== typeKey) return;
+        (it.history||[]).forEach(h => {
+          if (!h.date) return;
+          if (Number(h.date.slice(0,4)) !== yearSel) return;
+          if (Number(h.date.slice(5,7)) - 1 !== monthIdx) return;
+          items.push({ date: h.date, name: it.name, area: it.area, cost: Number(h.cost||0), notes: h.notes||'' });
+        });
+      });
+      items.sort((a,b) => a.date < b.date ? -1 : 1);
+
+      if (!items.length) {
+        tbody.innerHTML = '<tr class="empty-row"><td colspan="5">No expense items for this selection.</td></tr>';
+        return;
+      }
+      const total = items.reduce((s,i)=>s+i.cost,0);
+      tbody.innerHTML = items.map(i => `<tr><td>${fmtDate(i.date)}</td><td>${escapeHtml(i.name)}</td><td>${escapeHtml(i.area||'-')}</td><td style="text-align:right">${fmtRp(i.cost)}</td><td>${escapeHtml(i.notes||'-')}</td></tr>`).join('')
+        + `<tr style="font-weight:700;"><td colspan="3">Total</td><td style="text-align:right">${fmtRp(total)}</td><td></td></tr>`;
+      return;
+    }
+
+    titleEl.textContent = 'Monthly Expense Summary (selected year)';
+    clearBtn.style.display = 'none';
+    theadEl.innerHTML = '<tr><th>Month</th><th style="text-align:right">Actual Expense</th><th style="text-align:right">Tasks Completed</th></tr>';
+
     const totalExpense = monthActual.reduce((s,v)=>s+v,0);
     const totalCount = monthCount.reduce((s,v)=>s+v,0);
     if (!totalExpense && !totalCount) {
@@ -1703,6 +1746,10 @@
     const rows = MONTHS.map((m,i) => `<tr><td>${m}</td><td style="text-align:right">${fmtRp(monthActual[i])}</td><td style="text-align:right">${monthCount[i]}</td></tr>`).join('');
     tbody.innerHTML = rows + `<tr style="font-weight:700;"><td>Total</td><td style="text-align:right">${fmtRp(totalExpense)}</td><td style="text-align:right">${totalCount}</td></tr>`;
   }
+  document.getElementById('monthly-summary-clear').addEventListener('click', () => {
+    monthlySummaryDrill = null;
+    renderDashboard();
+  });
 
   // ---------- Dashboard ----------
   let chartMonth;
@@ -1748,7 +1795,7 @@
 
     renderReminderColumns();
     renderInsights(yearSel, monthActual, monthByType);
-    renderMonthlySummary(monthActual, monthCount);
+    renderMonthlySummary(yearSel, monthActual, monthCount);
 
     if (window.Chart) {
       if (chartMonth) chartMonth.destroy();
@@ -1771,7 +1818,17 @@
           responsive:true, maintainAspectRatio:false,
           plugins:{ legend:{ display:true, position:'bottom', labels:{ boxWidth:10, font:{size:10.5} } },
             tooltip:{ callbacks:{ label: ctx => `${ctx.dataset.label}: ${fmtRp(ctx.parsed.y)}`, footer: items => { const total = items.reduce((s,it)=>s+it.parsed.y,0); return `Total: ${fmtRp(total)}`; } } } },
-          scales:{ x:{ stacked:true }, y:{ stacked:true, beginAtZero:true, ticks:{ callback: v => fmtRp(v) } } }
+          scales:{ x:{ stacked:true }, y:{ stacked:true, beginAtZero:true, ticks:{ callback: v => fmtRp(v) } } },
+          onHover: (evt, elements) => { evt.native.target.style.cursor = elements.length ? 'pointer' : 'default'; },
+          onClick: (evt, elements) => {
+            if (!elements.length) return;
+            const el = elements[0];
+            const ds = chartMonth.data.datasets[el.datasetIndex];
+            const typeKey = CATEGORY_LABEL_TO_TYPE[ds.label] || null;
+            monthlySummaryDrill = { monthIdx: el.index, typeKey, typeLabel: typeKey ? ds.label : 'All Categories' };
+            renderMonthlySummary(yearSel, monthActual, monthCount);
+            document.getElementById('monthly-summary-clear').scrollIntoView({ behavior:'smooth', block:'center' });
+          }
         }
       });
     }
