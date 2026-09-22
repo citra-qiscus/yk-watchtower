@@ -1709,27 +1709,33 @@
       const { monthIdx, typeKey, typeLabel } = monthlySummaryDrill;
       titleEl.textContent = `${typeLabel} — ${MONTHS[monthIdx]} ${yearSel}`;
       clearBtn.style.display = 'inline-block';
-      theadEl.innerHTML = '<tr><th>Date</th><th>Task</th><th>Area</th><th style="text-align:right">Cost</th><th>Notes</th></tr>';
+      theadEl.innerHTML = '<tr><th>Task</th><th>Area</th><th style="text-align:right">Occurrences</th><th style="text-align:right">Total Cost</th></tr>';
 
-      const items = [];
+      // Grouped by task — a task done more than once this month (e.g. a
+      // twice-a-month restock) shows as one summed row, not one row per
+      // completion. Per-transaction dates/notes are already covered by the
+      // History tab's own month filter.
+      const grouped = {};
       tasks.forEach(it => {
         if (typeKey && it.type !== typeKey) return;
         (it.history||[]).forEach(h => {
           if (!h.date) return;
           if (Number(h.date.slice(0,4)) !== yearSel) return;
           if (Number(h.date.slice(5,7)) - 1 !== monthIdx) return;
-          items.push({ date: h.date, name: it.name, area: it.area, cost: Number(h.cost||0), notes: h.notes||'' });
+          if (!grouped[it.id]) grouped[it.id] = { name: it.name, area: it.area, cost: 0, count: 0 };
+          grouped[it.id].cost += Number(h.cost||0);
+          grouped[it.id].count++;
         });
       });
-      items.sort((a,b) => a.date < b.date ? -1 : 1);
+      const items = Object.values(grouped).sort((a,b) => b.cost - a.cost);
 
       if (!items.length) {
-        tbody.innerHTML = '<tr class="empty-row"><td colspan="5">No expense items for this selection.</td></tr>';
+        tbody.innerHTML = '<tr class="empty-row"><td colspan="4">No expense items for this selection.</td></tr>';
         return;
       }
       const total = items.reduce((s,i)=>s+i.cost,0);
-      tbody.innerHTML = items.map(i => `<tr><td>${fmtDate(i.date)}</td><td>${escapeHtml(i.name)}</td><td>${escapeHtml(i.area||'-')}</td><td style="text-align:right">${fmtRp(i.cost)}</td><td>${escapeHtml(i.notes||'-')}</td></tr>`).join('')
-        + `<tr style="font-weight:700;"><td colspan="3">Total</td><td style="text-align:right">${fmtRp(total)}</td><td></td></tr>`;
+      tbody.innerHTML = items.map(i => `<tr><td>${escapeHtml(i.name)}</td><td>${escapeHtml(i.area||'-')}</td><td style="text-align:right">${i.count}</td><td style="text-align:right">${fmtRp(i.cost)}</td></tr>`).join('')
+        + `<tr style="font-weight:700;"><td colspan="3">Total</td><td style="text-align:right">${fmtRp(total)}</td></tr>`;
       return;
     }
 
